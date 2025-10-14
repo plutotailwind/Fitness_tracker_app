@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
+import 'package:file_picker/file_picker.dart';
 import 'package:video_player/video_player.dart';
 import 'package:camera/camera.dart';
 import '../models/reference_video.dart';
@@ -13,6 +14,7 @@ class DesktopSplitView extends StatefulWidget {
   final bool isGuided;
   final VoidCallback? onReferenceTap;
   final bool autoPlayReference;
+  final void Function(String path)? onReferencePicked;
 
   const DesktopSplitView({
     super.key,
@@ -22,6 +24,7 @@ class DesktopSplitView extends StatefulWidget {
     this.isGuided = false,
     this.onReferenceTap,
     this.autoPlayReference = false,
+    this.onReferencePicked,
   });
 
   @override
@@ -385,14 +388,25 @@ class _DesktopSplitViewState extends State<DesktopSplitView> {
               ),
             ),
             const SizedBox(height: 8),
-            ElevatedButton.icon(
-              onPressed: widget.onReferenceTap,
-              icon: const Icon(Icons.upload),
-              label: const Text('Upload Reference'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
-                foregroundColor: Colors.white,
-              ),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ElevatedButton.icon(
+                  onPressed: widget.onReferenceTap,
+                  icon: const Icon(Icons.upload),
+                  label: const Text('Upload Reference'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                OutlinedButton.icon(
+                  onPressed: _pickReferenceFromFileSystem,
+                  icon: const Icon(Icons.folder_open),
+                  label: const Text('Browse...'),
+                ),
+              ],
             ),
           ],
         ),
@@ -501,12 +515,40 @@ class _DesktopSplitViewState extends State<DesktopSplitView> {
                     maxLines: 1,
                   ),
                 ),
+                const SizedBox(width: 8),
+                OutlinedButton.icon(
+                  onPressed: _pickReferenceFromFileSystem,
+                  icon: const Icon(Icons.folder_open, size: 16),
+                  label: const Text('Change', style: TextStyle(fontSize: 12)),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    side: const BorderSide(color: Colors.white54),
+                  ),
+                ),
               ],
             ),
           ),
         ],
       ),
     );
+  }
+
+  Future<void> _pickReferenceFromFileSystem() async {
+    try {
+      final res = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: const ['mp4', 'avi', 'mov', 'mkv', 'wmv', 'flv'],
+        allowMultiple: false,
+      );
+      final path = res?.files.single.path;
+      if (path == null) return;
+      // ignore: avoid_print
+      print('[Video] Picked file: $path');
+      widget.onReferencePicked?.call(path);
+    } catch (e) {
+      // ignore: avoid_print
+      print('[Video] FilePicker error: $e');
+    }
   }
 }
 

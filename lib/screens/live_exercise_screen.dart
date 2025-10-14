@@ -551,6 +551,33 @@ class _LiveExerciseScreenState extends State<LiveExerciseScreen> {
     }
   }
 
+  /// Handle file picked from DesktopSplitView and process as reference
+  Future<void> _handlePickedReferencePath(String path) async {
+    if (_videoProcessor == null) return;
+    setState(() => _isProcessingVideo = true);
+    try {
+      final referenceVideo = await _videoProcessor!.processVideoFromPath(
+        filePath: path,
+        exerciseType: _selectedExercise.name,
+        title: 'Reference from file',
+        description: null,
+      );
+      if (referenceVideo != null) {
+        final prefs = await SharedPreferences.getInstance();
+        final key = 'reference_video_${referenceVideo.id}';
+        await prefs.setString(key, jsonEncode(referenceVideo.toJson()));
+        setState(() {
+          _selectedReferenceVideo = referenceVideo;
+          _hasReference = true;
+        });
+        await _persistLastSelectedReference(referenceVideo.id);
+      }
+    } catch (_) {
+    } finally {
+      if (mounted) setState(() => _isProcessingVideo = false);
+    }
+  }
+
   /// Show dialog for video upload details
   Future<Map<String, String>?> _showVideoUploadDialog() async {
     ExerciseType selectedExerciseType = _selectedExercise;
@@ -1202,6 +1229,7 @@ class _LiveExerciseScreenState extends State<LiveExerciseScreen> {
               isGuided: _isGuided,
               onReferenceTap: _uploadReferenceVideo,
               autoPlayReference: true,
+              onReferencePicked: _handlePickedReferencePath,
             ),
           ),
           const SizedBox(height: 8),
