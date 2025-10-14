@@ -56,14 +56,33 @@ class _SplitViewState extends State<SplitView> {
   Future<void> _initializeVideo() async {
     if (widget.referenceVideo == null) return;
 
+    final path = widget.referenceVideo!.videoPath;
+    _isVideoInitialized = false;
     try {
       _videoController?.dispose();
-      _videoController = VideoPlayerController.file(File(widget.referenceVideo!.videoPath));
-      await _videoController!.initialize();
+      final fileController = VideoPlayerController.file(File(path));
+      _videoController = fileController;
+      await fileController.initialize();
+      fileController.setLooping(true);
+      if (widget.isGuided && widget.autoPlayReference) {
+        fileController.play();
+      }
       setState(() => _isVideoInitialized = true);
     } catch (e) {
-      print('Error initializing video: $e');
-      setState(() => _isVideoInitialized = false);
+      // Fallback to file:// URI
+      try {
+        final uriController = VideoPlayerController.networkUrl(Uri.file(path));
+        _videoController = uriController;
+        await uriController.initialize();
+        uriController.setLooping(true);
+        if (widget.isGuided && widget.autoPlayReference) {
+          uriController.play();
+        }
+        setState(() => _isVideoInitialized = true);
+      } catch (e2) {
+        print('Error initializing video (both file and file:// failed): $e | $e2');
+        setState(() => _isVideoInitialized = false);
+      }
     }
   }
 

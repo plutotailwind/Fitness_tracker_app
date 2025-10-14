@@ -32,6 +32,8 @@ class _DesktopSplitViewState extends State<DesktopSplitView> {
   VideoPlayerController? _videoController;
   bool _isVideoReady = false;
   String? _videoError;
+  String? _resolvedVideoPath;
+  bool _resolvedFileExists = false;
 
   @override
   void didUpdateWidget(covariant DesktopSplitView oldWidget) {
@@ -48,27 +50,99 @@ class _DesktopSplitViewState extends State<DesktopSplitView> {
     _initVideoIfAvailable();
   }
 
-  void _initVideoIfAvailable() {
+  Future<void> _initVideoIfAvailable() async {
     if (widget.referenceVideo == null) return;
-    final path = widget.referenceVideo!.videoPath;
     _videoError = null;
     _isVideoReady = false;
-    final controller = VideoPlayerController.file(File(path));
-    _videoController = controller;
-    controller.setLooping(true);
-    controller.addListener(() {
-      if (mounted) setState(() {});
-    });
-    controller.initialize().then((_) {
+
+    // Try primary copied path first
+    final primaryPath = widget.referenceVideo!.videoPath;
+    final primaryFile = File(primaryPath);
+
+    // If missing, try original source path from metadata
+    String? fallbackPath;
+    try {
+      final meta = widget.referenceVideo!.metadata;
+      final raw = meta['originalPath'];
+      if (raw is String && raw.isNotEmpty) fallbackPath = raw;
+    } catch (_) {}
+
+    String? chosenPath;
+    if (await primaryFile.exists()) {
+      chosenPath = primaryPath;
+    } else if (fallbackPath != null && await File(fallbackPath).exists()) {
+      chosenPath = fallbackPath;
+    }
+
+    if (chosenPath == null) {
+      // Log path diagnostics
+      // ignore: avoid_print
+      print('[Video] No playable path. primary="$primaryPath" exists=${await primaryFile.exists()} fallback="$fallbackPath"');
+      setState(() => _videoError = 'Video file not found');
+      return;
+    }
+
+    try {
+      _resolvedVideoPath = chosenPath;
+      _resolvedFileExists = await File(chosenPath).exists();
+      // ignore: avoid_print
+      print('[Video] Initialize file controller with path=${_resolvedVideoPath}, exists=${_resolvedFileExists}');
+      final controller = VideoPlayerController.file(File(chosenPath));
+      _videoController = controller;
+      controller.setLooping(true);
+      controller.addListener(() {
+        if (!mounted) return;
+        if (controller.value.hasError) {
+          // ignore: avoid_print
+          print('[Video] Controller error: ${controller.value.errorDescription}');
+        }
+        setState(() {});
+      });
+      await controller.initialize();
       if (!mounted) return;
+      // ignore: avoid_print
+      print('[Video] Initialized. size=${controller.value.size} aspect=${controller.value.aspectRatio}');
       setState(() => _isVideoReady = true);
       if (widget.autoPlayReference) {
+        // ignore: avoid_print
+        print('[Video] Auto-play');
         controller.play();
       }
-    }).catchError((e) {
-      if (!mounted) return;
-      setState(() => _videoError = 'Failed to load video');
-    });
+    } catch (e) {
+      // Retry with file:// URI form
+      // ignore: avoid_print
+      print('[Video] File controller failed: $e. Retrying with file:// URI');
+      try {
+        final uri = Uri.file(chosenPath);
+        final controller = VideoPlayerController.networkUrl(uri);
+        _videoController = controller;
+        controller.setLooping(true);
+        controller.addListener(() {
+          if (!mounted) return;
+          if (controller.value.hasError) {
+            // ignore: avoid_print
+            print('[Video] URI controller error: ${controller.value.errorDescription}');
+          }
+          setState(() {});
+        });
+        await controller.initialize();
+        if (!mounted) return;
+        // ignore: avoid_print
+        print('[Video] URI initialized. size=${controller.value.size} aspect=${controller.value.aspectRatio}');
+        setState(() => _isVideoReady = true);
+        if (widget.autoPlayReference) {
+          // ignore: avoid_print
+          print('[Video] URI auto-play');
+          controller.play();
+        }
+      } catch (_) {
+        if (!mounted) return;
+        final exists = await File(chosenPath).exists();
+        // ignore: avoid_print
+        print('[Video] Both initializations failed. path=$chosenPath exists=$exists');
+        setState(() => _videoError = exists ? 'Failed to load video' : 'Video file not found');
+      }
+    }
   }
 
   void _disposeVideo() {
@@ -330,6 +404,38 @@ class _DesktopSplitViewState extends State<DesktopSplitView> {
       child: Stack(
         alignment: Alignment.center,
         children: [
+          if (_resolvedVideoPath != null)
+            Positioned(
+              top: 8,
+              right: 8,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.55),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      _resolvedFileExists ? Icons.check_circle : Icons.error_outline,
+                      size: 14,
+                      color: _resolvedFileExists ? Colors.greenAccent : Colors.orangeAccent,
+                    ),
+                    const SizedBox(width: 6),
+                    SizedBox(
+                      width: 260,
+                      child: Text(
+                        _resolvedVideoPath!,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(color: Colors.white70, fontSize: 11),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           if (_videoError != null)
             Padding(
               padding: const EdgeInsets.all(12),

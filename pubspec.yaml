@@ -41,6 +41,7 @@ dependencies:
   # Local storage
   shared_preferences: ^2.2.2
   video_player: ^2.9.1
+  video_player_win: any
   # Camera for live exercise video feed
   camera: ^0.10.5+9
 
