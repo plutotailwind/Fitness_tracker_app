@@ -98,6 +98,9 @@ class _LiveExerciseScreenState extends State<LiveExerciseScreen> {
   SessionStatus? _currentSessionStatus;
   StreamSubscription<SessionStatus>? _statusSubscription;
   StreamSubscription<AnalysisResult>? _analysisSubscription;
+  // Skeleton overlays
+  Map<String, Offset> _liveLandmarksOffsets = const {};
+  Map<String, Offset> _referenceLandmarksOffsets = const {};
 
   Future<void> _persistLastSelectedReference(String? id) async {
     final prefs = await SharedPreferences.getInstance();
@@ -530,6 +533,10 @@ class _LiveExerciseScreenState extends State<LiveExerciseScreen> {
         setState(() {
           _selectedReferenceVideo = referenceVideo;
           _hasReference = true;
+          if (referenceVideo.poseSequence.isNotEmpty) {
+            _referenceLandmarksOffsets = referenceVideo.poseSequence.first.landmarks
+                .map((k, v) => MapEntry(k, Offset(v.x, v.y)));
+          }
         });
         // Persist selection
         await _persistLastSelectedReference(referenceVideo.id);
@@ -569,6 +576,16 @@ class _LiveExerciseScreenState extends State<LiveExerciseScreen> {
         setState(() {
           _selectedReferenceVideo = referenceVideo;
           _hasReference = true;
+          if (referenceVideo.poseSequence.isNotEmpty) {
+            _referenceLandmarksOffsets = referenceVideo.poseSequence.first.landmarks
+                .map((k, v) => MapEntry(k, Offset(v.x, v.y)));
+            try {
+              final rs = _referenceLandmarksOffsets;
+              // ignore: avoid_print
+              print('[Ref LM] firstFrame: nose=' + (rs['nose']?.toString() ?? 'null') +
+                  ' LShoulder=' + (rs['leftShoulder']?.toString() ?? 'null'));
+            } catch (_) {}
+          }
         });
         await _persistLastSelectedReference(referenceVideo.id);
       }
@@ -733,6 +750,15 @@ class _LiveExerciseScreenState extends State<LiveExerciseScreen> {
     }
     
     _processPose(landmarkMap);
+    // Update live skeleton overlay (coordinates already 0..1)
+    _liveLandmarksOffsets = landmarkMap.map((k, v) => MapEntry(k, Offset(v.x, v.y)));
+    try {
+      final ls = _liveLandmarksOffsets;
+      // ignore: avoid_print
+      print('[Live LM] nose=' + (ls['nose']?.toString() ?? 'null') +
+          ' LShoulder=' + (ls['leftShoulder']?.toString() ?? 'null') +
+          ' RShoulder=' + (ls['rightShoulder']?.toString() ?? 'null'));
+    } catch (_) {}
     
     // Analyze pose with API if available
     if (_isApiSessionActive) {
@@ -1230,6 +1256,8 @@ class _LiveExerciseScreenState extends State<LiveExerciseScreen> {
               onReferenceTap: _uploadReferenceVideo,
               autoPlayReference: true,
               onReferencePicked: _handlePickedReferencePath,
+              liveLandmarks: _liveLandmarksOffsets,
+              referenceLandmarks: _referenceLandmarksOffsets,
             ),
           ),
           const SizedBox(height: 8),

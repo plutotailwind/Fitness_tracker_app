@@ -5,6 +5,7 @@ import 'package:video_player/video_player.dart';
 import 'package:camera/camera.dart';
 import '../models/reference_video.dart';
 import '../services/desktop_camera_service.dart';
+import 'skeleton_painter.dart';
 
 /// Desktop-compatible split view widget
 class DesktopSplitView extends StatefulWidget {
@@ -15,6 +16,8 @@ class DesktopSplitView extends StatefulWidget {
   final VoidCallback? onReferenceTap;
   final bool autoPlayReference;
   final void Function(String path)? onReferencePicked;
+  final Map<String, Offset>? liveLandmarks; // normalized 0..1
+  final Map<String, Offset>? referenceLandmarks; // normalized 0..1
 
   const DesktopSplitView({
     super.key,
@@ -25,6 +28,8 @@ class DesktopSplitView extends StatefulWidget {
     this.onReferenceTap,
     this.autoPlayReference = false,
     this.onReferencePicked,
+    this.liveLandmarks,
+    this.referenceLandmarks,
   });
 
   @override
@@ -282,11 +287,32 @@ class _DesktopSplitViewState extends State<DesktopSplitView> {
 
     final controller = widget.cameraService!.cameraController;
     if (controller != null && controller.value.isInitialized) {
+      final aspect = controller.value.aspectRatio == 0 || controller.value.aspectRatio.isNaN
+          ? 16 / 9
+          : controller.value.aspectRatio;
       return ClipRRect(
         borderRadius: const BorderRadius.only(
           bottomLeft: Radius.circular(8),
         ),
-        child: CameraPreview(controller),
+        child: Center(
+          child: AspectRatio(
+            aspectRatio: aspect,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                CameraPreview(controller),
+                IgnorePointer(
+                  child: CustomPaint(
+                    painter: SkeletonPainter(
+                      landmarks: widget.liveLandmarks ?? const {},
+                      lineColor: Colors.limeAccent,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       );
     }
 
@@ -465,7 +491,20 @@ class _DesktopSplitViewState extends State<DesktopSplitView> {
                   topRight: Radius.circular(8),
                   bottomRight: Radius.circular(8),
                 ),
-                child: VideoPlayer(_videoController!),
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    VideoPlayer(_videoController!),
+                    IgnorePointer(
+                      child: CustomPaint(
+                        painter: SkeletonPainter(
+                          landmarks: widget.referenceLandmarks ?? const {},
+                          lineColor: Colors.cyanAccent,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             )
           else
