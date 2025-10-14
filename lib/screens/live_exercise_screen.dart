@@ -39,6 +39,8 @@ class LiveExerciseScreen extends StatefulWidget {
 }
 
 class _LiveExerciseScreenState extends State<LiveExerciseScreen> {
+  // Feature flag: enable when backend WebSocket stream exists
+  static const bool _enableFrameWs = false;
   // Desktop Camera Service
   DesktopCameraService? _cameraService;
   bool _isCameraInitializing = false;
@@ -386,14 +388,14 @@ class _LiveExerciseScreenState extends State<LiveExerciseScreen> {
   }
 
   Future<void> _startReferenceRecording() async {
-    if (!_isDetectorReady || _poseDetector == null) {
+    if (!_isDetectorReady) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Pose detector not ready. Please wait...')),
       );
       return;
     }
 
-    if (_cameraController == null || !_cameraController!.value.isInitialized) {
+    if (_cameraService == null || !_cameraService!.isInitialized) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Camera not ready. Please wait...')),
       );
@@ -653,11 +655,14 @@ class _LiveExerciseScreenState extends State<LiveExerciseScreen> {
     }
 
     try {
-      print('Processing desktop camera image (simulated)');
-      
-      // Simulate pose detection for desktop
+      // If we have a real camera frame stream, forward compressed JPEG to backend
+      if (_isApiSessionActive && _currentApiSessionId != null) {
+        // Build a tiny mock JPEG payload from generated landmarks for now
+        // In a full implementation, convert CameraImage planes to JPEG.
+      }
+
+      // Simulate pose detection for desktop (until real landmark extraction wired)
       _simulatePoseDetection();
-      
       _isProcessingFrame = false;
     } catch (e) {
       print('Error processing desktop camera image: $e');
@@ -1049,8 +1054,13 @@ class _LiveExerciseScreenState extends State<LiveExerciseScreen> {
       _lastMotionAt = DateTime.now();
     });
     
-    // Start desktop camera simulation
+    // Start camera stream (real if available)
     _startDesktopCameraSimulation();
+
+    // If API session active, open frame WebSocket
+    if (_enableFrameWs && _isApiSessionActive && _currentApiSessionId != null) {
+      try { ExerciseApiService.openFrameStream(_currentApiSessionId!); } catch (_) {}
+    }
     
     _timer?.cancel();
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
@@ -1090,6 +1100,10 @@ class _LiveExerciseScreenState extends State<LiveExerciseScreen> {
     }
     
     _timer?.cancel();
+    // Close frame stream if enabled
+    if (_enableFrameWs) {
+      ExerciseApiService.closeFrameStream();
+    }
     setState(() {
       _sessionState = SessionState.finished;
       _isGuided = false; // exit guided mode to pause reference video and toggle UI
@@ -1297,7 +1311,9 @@ class _LiveExerciseScreenState extends State<LiveExerciseScreen> {
                     width: 20,
                     height: 20,
                     child: CircularProgressIndicator(strokeWidth: 2),
-                  ),
+                  )
+                else if (_selectedReferenceVideo != null)
+                  const Icon(Icons.check_circle, color: Colors.green, size: 18),
               ],
             ),
           ),
@@ -1360,7 +1376,7 @@ class _LiveExerciseScreenState extends State<LiveExerciseScreen> {
           const SizedBox(height: 8),
           // Real-time feedback panel
           Expanded(
-            flex: 2,
+            flex: 1,
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Container(
@@ -1370,7 +1386,7 @@ class _LiveExerciseScreenState extends State<LiveExerciseScreen> {
                   border: Border.all(color: Colors.grey.shade300),
                 ),
                 padding: const EdgeInsets.all(12),
-        child: Column(
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
@@ -1403,7 +1419,7 @@ class _LiveExerciseScreenState extends State<LiveExerciseScreen> {
                     const SizedBox(height: 4),
                     Expanded(
                       child: ListView.builder(
-                        itemCount: _realtimeFeedback.length,
+                        itemCount: _realtimeFeedback.length > 5 ? 5 : _realtimeFeedback.length,
                         itemBuilder: (context, index) {
                           final tip = _realtimeFeedback[_realtimeFeedback.length - 1 - index];
                           return Padding(

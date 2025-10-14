@@ -5,6 +5,8 @@ import 'package:flutter/foundation.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:desktop_drop/desktop_drop.dart';
+import 'package:camera/camera.dart';
+import 'package:flutter/material.dart';
 
 /// Desktop-compatible camera service that uses file selection instead of live camera
 class DesktopCameraService {
@@ -16,6 +18,8 @@ class DesktopCameraService {
   bool _isInitialized = false;
   bool _isStreaming = false;
   StreamController<DesktopCameraImage>? _imageStreamController;
+  CameraController? _cameraController;
+  List<CameraDescription> _cameras = const [];
   
   /// Check if camera is available (always true for desktop)
   bool get isAvailable => true;
@@ -28,14 +32,37 @@ class DesktopCameraService {
   
   /// Get image stream
   Stream<DesktopCameraImage>? get imageStream => _imageStreamController?.stream;
+
+  /// Expose camera controller for preview
+  CameraController? get cameraController => _cameraController;
   
   /// Initialize the desktop camera service
   Future<bool> initialize() async {
     try {
-      _isInitialized = true;
       _imageStreamController = StreamController<DesktopCameraImage>.broadcast();
-      print('Desktop camera service initialized');
-      return true;
+      try {
+        _cameras = await availableCameras();
+        if (_cameras.isNotEmpty) {
+          _cameraController = CameraController(
+            _cameras.first,
+            ResolutionPreset.medium,
+            enableAudio: false,
+            imageFormatGroup: ImageFormatGroup.bgra8888,
+          );
+          await _cameraController!.initialize();
+          _isInitialized = true;
+          print('Windows camera initialized: \'${_cameras.first.name}\'');
+          return true;
+        } else {
+          print('No cameras found; falling back to simulation');
+          _isInitialized = true; // allow simulation
+          return true;
+        }
+      } catch (e) {
+        print('Camera init failed, simulation only: $e');
+        _isInitialized = true; // allow simulation UI
+        return true;
+      }
     } catch (e) {
       print('Failed to initialize desktop camera service: $e');
       return false;
@@ -49,13 +76,40 @@ class DesktopCameraService {
     }
     
     _isStreaming = true;
-    _imageStreamController?.stream.listen(onImage);
-    print('Desktop image stream started');
+    if (_cameraController != null && _cameraController!.value.isInitialized) {
+      try {
+        await _cameraController!.startImageStream((CameraImage img) {
+          // Convert minimal metadata to DesktopCameraImage for compatibility
+          // Note: For real processing, map planes properly
+          final bytesPerRow = img.planes.isNotEmpty ? img.planes[0].bytesPerRow : 0;
+          final bytes = img.planes.isNotEmpty ? img.planes[0].bytes : Uint8List(0);
+          final desktopImage = DesktopCameraImage(
+            width: img.width,
+            height: img.height,
+            format: ImageFormat.bgra8888,
+            planes: [DesktopImagePlane(bytes: bytes, bytesPerRow: bytesPerRow)],
+          );
+          onImage(desktopImage);
+        });
+        print('Windows camera image stream started');
+      } catch (e) {
+        print('Failed to start camera image stream, using simulation: $e');
+        _imageStreamController?.stream.listen(onImage);
+      }
+    } else {
+      _imageStreamController?.stream.listen(onImage);
+      print('Simulation image stream started');
+    }
   }
   
   /// Stop image stream
   Future<void> stopImageStream() async {
     _isStreaming = false;
+    try {
+      if (_cameraController != null && _cameraController!.value.isStreamingImages) {
+        await _cameraController!.stopImageStream();
+      }
+    } catch (_) {}
     _imageStreamController?.close();
     _imageStreamController = null;
     print('Desktop image stream stopped');
@@ -139,6 +193,8 @@ class DesktopCameraService {
     _imageStreamController?.close();
     _imageStreamController = null;
     _isInitialized = false;
+    try { _cameraController?.dispose(); } catch (_) {}
+    _cameraController = null;
   }
 }
 

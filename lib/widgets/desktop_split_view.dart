@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'dart:io';
+import 'package:video_player/video_player.dart';
+import 'package:camera/camera.dart';
 import '../models/reference_video.dart';
 import '../services/desktop_camera_service.dart';
 
@@ -26,6 +29,59 @@ class DesktopSplitView extends StatefulWidget {
 }
 
 class _DesktopSplitViewState extends State<DesktopSplitView> {
+  VideoPlayerController? _videoController;
+  bool _isVideoReady = false;
+  String? _videoError;
+
+  @override
+  void didUpdateWidget(covariant DesktopSplitView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.referenceVideo?.videoPath != widget.referenceVideo?.videoPath) {
+      _disposeVideo();
+      _initVideoIfAvailable();
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _initVideoIfAvailable();
+  }
+
+  void _initVideoIfAvailable() {
+    if (widget.referenceVideo == null) return;
+    final path = widget.referenceVideo!.videoPath;
+    _videoError = null;
+    _isVideoReady = false;
+    final controller = VideoPlayerController.file(File(path));
+    _videoController = controller;
+    controller.setLooping(true);
+    controller.addListener(() {
+      if (mounted) setState(() {});
+    });
+    controller.initialize().then((_) {
+      if (!mounted) return;
+      setState(() => _isVideoReady = true);
+      if (widget.autoPlayReference) {
+        controller.play();
+      }
+    }).catchError((e) {
+      if (!mounted) return;
+      setState(() => _videoError = 'Failed to load video');
+    });
+  }
+
+  void _disposeVideo() {
+    _isVideoReady = false;
+    _videoController?.dispose();
+    _videoController = null;
+  }
+
+  @override
+  void dispose() {
+    _disposeVideo();
+    super.dispose();
+  }
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -35,21 +91,19 @@ class _DesktopSplitViewState extends State<DesktopSplitView> {
       ),
       child: Row(
         children: [
-          // Live camera view (left side)
+          // Live camera view (left)
           Expanded(
-            flex: 1,
+            flex: 3,
             child: _buildCameraView(),
           ),
-          
           // Divider
           Container(
             width: 2,
             color: Colors.grey.shade300,
           ),
-          
-          // Reference video view (right side)
+          // Reference video view (right)
           Expanded(
-            flex: 1,
+            flex: 2,
             child: _buildReferenceView(),
           ),
         ],
@@ -59,7 +113,7 @@ class _DesktopSplitViewState extends State<DesktopSplitView> {
 
   Widget _buildCameraView() {
     return Container(
-      height: 300,
+      height: 220,
       decoration: BoxDecoration(
         color: Colors.grey.shade100,
         borderRadius: const BorderRadius.only(
@@ -149,33 +203,27 @@ class _DesktopSplitViewState extends State<DesktopSplitView> {
       );
     }
 
+    final controller = widget.cameraService!.cameraController;
+    if (controller != null && controller.value.isInitialized) {
+      return ClipRRect(
+        borderRadius: const BorderRadius.only(
+          bottomLeft: Radius.circular(8),
+        ),
+        child: CameraPreview(controller),
+      );
+    }
+
     return Container(
       color: Colors.black,
       child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.videocam,
-              size: 48,
-              color: Colors.white,
-            ),
+            const Icon(Icons.videocam, size: 48, color: Colors.white),
             const SizedBox(height: 16),
-            const Text(
-              'Live Camera Feed',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 8),
             Text(
-              'Desktop simulation mode',
-              style: TextStyle(
-                color: Colors.grey.shade300,
-                fontSize: 12,
-              ),
+              'Camera initialized, waiting for stream...',
+              style: TextStyle(color: Colors.grey.shade300, fontSize: 12),
             ),
           ],
         ),
@@ -279,52 +327,78 @@ class _DesktopSplitViewState extends State<DesktopSplitView> {
 
     return Container(
       color: Colors.black,
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.play_circle_outline,
-              size: 48,
-              color: Colors.white,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              widget.referenceVideo!.title,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Reference video loaded',
-              style: TextStyle(
-                color: Colors.grey.shade300,
-                fontSize: 12,
-              ),
-            ),
-            if (widget.autoPlayReference) ...[
-              const SizedBox(height: 16),
-              ElevatedButton.icon(
-                onPressed: () {
-                  // TODO: Implement video playback
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Video playback not implemented yet')),
-                  );
-                },
-                icon: const Icon(Icons.play_arrow),
-                label: const Text('Play'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
-                  foregroundColor: Colors.white,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          if (_videoError != null)
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: Text(_videoError!, style: const TextStyle(color: Colors.redAccent)),
+            )
+          else if (_isVideoReady && _videoController != null)
+            AspectRatio(
+              aspectRatio: (_videoController!.value.aspectRatio == 0 || _videoController!.value.aspectRatio.isNaN)
+                  ? 16 / 9
+                  : _videoController!.value.aspectRatio,
+              child: ClipRRect(
+                borderRadius: const BorderRadius.only(
+                  topRight: Radius.circular(8),
+                  bottomRight: Radius.circular(8),
                 ),
+                child: VideoPlayer(_videoController!),
               ),
-            ],
-          ],
-        ),
+            )
+          else
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.play_circle_outline, size: 48, color: Colors.white),
+                const SizedBox(height: 16),
+                Text(
+                  widget.referenceVideo!.title,
+                  style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                Text('Loading video...', style: TextStyle(color: Colors.grey.shade300, fontSize: 12)),
+              ],
+            ),
+          Positioned(
+            bottom: 8,
+            left: 8,
+            right: 8,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                IconButton(
+                  onPressed: _isVideoReady && _videoController != null
+                      ? () {
+                          if (_videoController!.value.isPlaying) {
+                            _videoController!.pause();
+                          } else {
+                            _videoController!.play();
+                          }
+                          setState(() {});
+                        }
+                      : null,
+                  icon: Icon(
+                    _videoController?.value.isPlaying == true ? Icons.pause : Icons.play_arrow,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    widget.referenceVideo!.videoPath,
+                    style: const TextStyle(color: Colors.white70, fontSize: 11),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -1,13 +1,18 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:http/http.dart' as http;
+import 'package:web_socket_channel/web_socket_channel.dart';
+import 'package:web_socket_channel/io.dart';
 
 /// Service class for interacting with the Fitness Tracker REST API
 class ExerciseApiService {
   static const String _baseUrl = 'http://localhost:8000';
   static const Duration _timeout = Duration(seconds: 30);
+  static const String _wsBase = 'ws://localhost:8000';
+  static WebSocketChannel? _frameChannel;
 
-  /// Check if the API server is running
+  /// Check if the s is running
   static Future<ApiResponse<HealthStatus>> checkHealth() async {
     try {
       final response = await http.get(
@@ -53,6 +58,32 @@ class ExerciseApiService {
     } catch (e) {
       return ApiResponse.error('Session start error: $e');
     }
+  }
+
+  /// Open a WebSocket to stream JPEG frames for the current session
+  static Future<bool> openFrameStream(String sessionId) async {
+    try {
+      closeFrameStream();
+      final uri = Uri.parse('$_wsBase/stream/$sessionId');
+      _frameChannel = IOWebSocketChannel.connect(uri);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /// Send a single JPEG frame as binary over the WebSocket
+  static void sendJpegFrame(Uint8List jpegBytes) {
+    if (_frameChannel == null) return;
+    try {
+      _frameChannel!.sink.add(jpegBytes);
+    } catch (_) {}
+  }
+
+  /// Close the frame stream
+  static void closeFrameStream() {
+    try { _frameChannel?.sink.close(); } catch (_) {}
+    _frameChannel = null;
   }
 
   /// Get the current status of a session
