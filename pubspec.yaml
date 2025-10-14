@@ -1,7 +1,7 @@
 name: fitness_tracker_app
 description: "A new Flutter project."
 # The following line prevents the package from being accidentally published to
-# pub.dev using `flutter pub publish`. This is preferred for private packages.
+# pub.dev using flutter pub publish. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
 # The following defines the version and build number for your application.
@@ -23,10 +23,10 @@ environment:
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
-# consider running `flutter pub upgrade --major-versions`. Alternatively,
+# consider running flutter pub upgrade --major-versions. Alternatively,
 # dependencies can be manually updated by changing the version numbers below to
 # the latest version available on pub.dev. To see which dependencies have newer
-# versions available, run `flutter pub outdated`.
+# versions available, run flutter pub outdated.
 dependencies:
   flutter:
     sdk: flutter
@@ -34,40 +34,48 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
-  
+
   # State management
   provider: ^6.1.1
-  
+
   # Local storage
   shared_preferences: ^2.2.2
-  
+
   # Camera for live exercise video feed
   camera: ^0.10.5+9
-  
+
   # MediaPipe-based on-device pose detection via Google ML Kit
   google_mlkit_pose_detection: ^0.13.0
-  
+
   # Math utilities for angle calculations
   vector_math: ^2.1.4
-  
+
   # Video handling and processing
   image_picker: ^1.0.7
   video_player: ^2.8.2
   path_provider: ^2.1.2
   permission_handler: ^11.3.0
   uuid: ^4.3.3
-  
+
   # HTTP requests for API calls
   http: ^1.1.0
-  
+
   # Date and time utilities
   intl: ^0.19.0
-  
+
   # Charts for progress visualization
   fl_chart: ^0.66.0
-  
+
   # Icons
   font_awesome_flutter: ^10.6.0
+    # File picker for mobile and desktop
+  file_picker: ^8.1.2
+
+  # File selector for desktop (Windows, macOS, Linux)
+  file_selector: ^1.0.3
+
+  # Drag and drop file handling for desktop
+  desktop_drop: ^0.4.4
 
 dev_dependencies:
   flutter_test:
@@ -75,7 +83,7 @@ dev_dependencies:
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
-  # activated in the `analysis_options.yaml` file located at the root of your
+  # activated in the analysis_options.yaml file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^5.0.0

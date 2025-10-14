@@ -6,16 +6,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show WriteBuffer;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vector_math/vector_math.dart' as vmath;
-// Camera
-import 'package:camera/camera.dart';
-// MediaPipe via ML Kit
-import 'package:google_mlkit_pose_detection/google_mlkit_pose_detection.dart';
+// Desktop-compatible imports
+import 'dart:io';
+import 'package:file_selector/file_selector.dart';
 
 // Video processing and pose comparison
 import '../models/reference_video.dart';
-import '../services/video_processor.dart';
+import '../services/desktop_video_processor.dart';
+import '../services/desktop_camera_service.dart';
 import '../services/pose_comparator.dart';
-import '../widgets/split_view.dart';
+import '../services/exercise_feedback_service.dart';
+import '../services/exercise_api_service.dart';
+import '../widgets/desktop_split_view.dart';
 
 enum ExerciseType { squats, pushups, jumpingJacks, yoga }
 
@@ -37,14 +39,9 @@ class LiveExerciseScreen extends StatefulWidget {
 }
 
 class _LiveExerciseScreenState extends State<LiveExerciseScreen> {
-  // Camera
-  CameraController? _cameraController;
+  // Desktop Camera Service
+  DesktopCameraService? _cameraService;
   bool _isCameraInitializing = false;
-  List<CameraDescription> _availableCameras = [];
-  CameraLensDirection _currentLens = CameraLensDirection.front;
-
-  // ML Kit Pose Detector (MediaPipe under the hood)
-  PoseDetector? _poseDetector;
   bool _isDetectorReady = false;
 
   // Session state
@@ -84,11 +81,21 @@ class _LiveExerciseScreenState extends State<LiveExerciseScreen> {
   Timer? _refWatchdog;
 
   // Video processing and reference management
-  VideoProcessor? _videoProcessor;
+  DesktopVideoProcessor? _videoProcessor;
   ReferenceVideo? _selectedReferenceVideo;
   List<ReferenceVideo> _availableReferences = [];
   bool _isProcessingVideo = false;
   static const String _prefsKeyLastRefId = 'last_selected_reference_id';
+
+  // API Integration
+  ExerciseFeedbackService? _apiService;
+  bool _isApiAvailable = false;
+  bool _isApiSessionActive = false;
+  String? _currentApiSessionId;
+  AnalysisResult? _lastAnalysisResult;
+  SessionStatus? _currentSessionStatus;
+  StreamSubscription<SessionStatus>? _statusSubscription;
+  StreamSubscription<AnalysisResult>? _analysisSubscription;
 
   Future<void> _persistLastSelectedReference(String? id) async {
     final prefs = await SharedPreferences.getInstance();
@@ -108,108 +115,244 @@ class _LiveExerciseScreenState extends State<LiveExerciseScreen> {
   @override
   void dispose() {
     _timer?.cancel();
-    _cameraController?.dispose();
-    _poseDetector?.close();
+    _cameraService?.dispose();
+    _statusSubscription?.cancel();
+    _analysisSubscription?.cancel();
+    _apiService?.dispose();
     super.dispose();
   }
 
   Future<void> _initialize() async {
-    // Initialize camera
+    // Initialize desktop camera service
     setState(() => _isCameraInitializing = true);
     try {
-      _availableCameras = await availableCameras();
-      if (_availableCameras.isEmpty) {
-        throw Exception('No cameras available');
-      }
+      _cameraService = DesktopCameraService();
+      final initialized = await _cameraService!.initialize();
       
-      print('Available cameras: ${_availableCameras.length}');
-      
-      final selected = _selectCamera(_currentLens);
-      print('Selected camera: ${selected.name} (${selected.lensDirection})');
-      
-      final controller = CameraController(
-        selected,
-        ResolutionPreset.medium,
-        enableAudio: false,
-        imageFormatGroup: ImageFormatGroup.yuv420,
-      );
-      
-      print('Initializing camera controller...');
-      await controller.initialize();
-      print('Camera controller initialized successfully');
-      
-      if (mounted) {
-        print('Starting image stream...');
-        await controller.startImageStream(_onCameraImage);
-        print('Image stream started successfully');
-        setState(() => _cameraController = controller);
-      }
-    } catch (e) {
-      print('Camera initialization error: $e');
-      // Camera not available; UI will show a warning
-    } finally {
-      if (mounted) {
+      if (initialized) {
+        print('Desktop camera service initialized successfully');
+        setState(() => _isCameraInitializing = false);
+      } else {
+        print('Failed to initialize desktop camera service');
         setState(() => _isCameraInitializing = false);
       }
-    }
-
-    // Initialize ML Kit PoseDetector
-    try {
-      print('Initializing pose detector...');
-      final options = PoseDetectorOptions(
-        mode: PoseDetectionMode.stream,
-        model: PoseDetectionModel.base,
-      );
-      _poseDetector = PoseDetector(options: options);
-      setState(() => _isDetectorReady = true);
-      print('Pose detector initialized successfully');
-      
-      // Initialize video processor
-      _videoProcessor = VideoProcessor(poseDetector: _poseDetector!);
-      print('Video processor initialized successfully');
     } catch (e) {
-      print('Pose detector initialization error: $e');
-      setState(() => _isDetectorReady = false);
-    }
-  }
-
-  CameraDescription _selectCamera(CameraLensDirection preferred) {
-    if (_availableCameras.isEmpty) {
-      throw StateError('No cameras available');
-    }
-    final match = _availableCameras.where((c) => c.lensDirection == preferred);
-    if (match.isNotEmpty) return match.first;
-    return _availableCameras.first;
-  }
-
-  Future<void> _switchCamera() async {
-    if (_availableCameras.isEmpty) return;
-    final newLens = _currentLens == CameraLensDirection.front
-        ? CameraLensDirection.back
-        : CameraLensDirection.front;
-    _currentLens = newLens;
-    try {
-      await _cameraController?.stopImageStream();
-    } catch (_) {}
-    await _cameraController?.dispose();
-    setState(() => _cameraController = null);
-    setState(() => _isCameraInitializing = true);
-    try {
-      final selected = _selectCamera(_currentLens);
-      final controller = CameraController(
-        selected,
-        ResolutionPreset.medium,
-        enableAudio: false,
-        imageFormatGroup: ImageFormatGroup.yuv420,
-      );
-      await controller.initialize();
-      await controller.startImageStream(_onCameraImage);
-      setState(() => _cameraController = controller);
-    } catch (_) {
-      // ignore
-    } finally {
+      print('Desktop camera initialization error: $e');
       setState(() => _isCameraInitializing = false);
     }
+
+    // Initialize desktop pose detector
+    try {
+      print('Initializing desktop pose detector...');
+      setState(() => _isDetectorReady = true);
+      print('Desktop pose detector initialized successfully');
+      
+      // Initialize desktop video processor
+      _videoProcessor = DesktopVideoProcessor();
+      print('Desktop video processor initialized successfully');
+    } catch (e) {
+      print('Desktop pose detector initialization error: $e');
+      setState(() => _isDetectorReady = false);
+    }
+
+    // Initialize API service
+    await _initializeApiService();
+  }
+
+  /// Initialize API service and check availability
+  Future<void> _initializeApiService() async {
+    try {
+      _apiService = ExerciseFeedbackService();
+      _isApiAvailable = await _apiService!.isApiAvailable();
+      
+      if (_isApiAvailable) {
+        print('API service is available');
+        _setupApiStreams();
+      } else {
+        print('API service is not available - running in offline mode');
+      }
+      
+      setState(() {});
+    } catch (e) {
+      print('API service initialization error: $e');
+      _isApiAvailable = false;
+    }
+  }
+
+  /// Setup API streams for real-time updates
+  void _setupApiStreams() {
+    if (_apiService == null) return;
+
+    _statusSubscription = _apiService!.statusStream.listen((status) {
+      if (mounted) {
+        setState(() {
+          _currentSessionStatus = status;
+        });
+      }
+    });
+
+    _analysisSubscription = _apiService!.analysisStream.listen((result) {
+      if (mounted) {
+        setState(() {
+          _lastAnalysisResult = result;
+        });
+        // Add API feedback to real-time feedback
+        if (result.feedback.isNotEmpty) {
+          _pushRealtimeFeedback('API: ${result.feedback}');
+        }
+      }
+    });
+  }
+
+  /// Start API session for exercise
+  Future<bool> _startApiSession() async {
+    if (_apiService == null || !_isApiAvailable) return false;
+
+    try {
+      // Determine priority joints based on exercise type
+      List<String> priorityJoints;
+      switch (_selectedExercise) {
+        case ExerciseType.squats:
+          priorityJoints = ['hip', 'knee'];
+          break;
+        case ExerciseType.pushups:
+          priorityJoints = ['elbow', 'shoulder'];
+          break;
+        case ExerciseType.jumpingJacks:
+          priorityJoints = ['elbow', 'shoulder', 'hip', 'knee'];
+          break;
+        case ExerciseType.yoga:
+          priorityJoints = ['hip', 'shoulder'];
+          break;
+      }
+
+      // Use selected reference video path or default
+      String trainerVideoPath = 'default_${_selectedExercise.name}.mp4';
+      if (_selectedReferenceVideo != null) {
+        trainerVideoPath = _selectedReferenceVideo!.videoPath;
+      }
+
+      final success = await _apiService!.startExerciseSession(
+        trainerVideoPath: trainerVideoPath,
+        priorityJoints: priorityJoints,
+        priorityWeight: 1.8,
+        nonpriorityWeight: 0.2,
+        requireWeights: false,
+        device: 'cpu',
+      );
+
+      if (success) {
+        _isApiSessionActive = true;
+        _currentApiSessionId = _apiService!.currentSessionId;
+        print('API session started: $_currentApiSessionId');
+        return true;
+      } else {
+        print('Failed to start API session');
+        return false;
+      }
+    } catch (e) {
+      print('Error starting API session: $e');
+      return false;
+    }
+  }
+
+  /// End API session
+  Future<void> _endApiSession() async {
+    if (_apiService == null || !_isApiSessionActive) return;
+
+    try {
+      final endResponse = await _apiService!.endExerciseSession();
+      if (endResponse != null) {
+        print('API session ended: ${endResponse.sessionId}');
+        print('Final stats: ${endResponse.summary.totalReps} reps, avg score: ${endResponse.summary.averageScore}');
+      }
+    } catch (e) {
+      print('Error ending API session: $e');
+    } finally {
+      _isApiSessionActive = false;
+      _currentApiSessionId = null;
+      _lastAnalysisResult = null;
+      _currentSessionStatus = null;
+    }
+  }
+
+  /// Analyze pose with API
+  Future<void> _analyzePoseWithApi(Map<String, _Landmark> landmarks) async {
+    if (_apiService == null || !_isApiSessionActive) return;
+
+    try {
+      // Convert landmarks to API format
+      final userLandmarks = _convertLandmarksToApiFormat(landmarks);
+      final trainerLandmarks = userLandmarks; // Use same format for now
+
+      final result = await _apiService!.analyzeCurrentPose(
+        userLandmarks: [userLandmarks],
+        trainerLandmarks: [trainerLandmarks],
+      );
+
+      if (result != null) {
+        // Handle API analysis result
+        _handleApiAnalysisResult(result);
+      }
+    } catch (e) {
+      print('Error analyzing pose with API: $e');
+    }
+  }
+
+  /// Convert landmarks to API format
+  List<List<double>> _convertLandmarksToApiFormat(Map<String, _Landmark> landmarks) {
+    final List<List<double>> result = [];
+    
+    // Convert each landmark to [x, y, z] format
+    landmarks.forEach((key, landmark) {
+      result.add([landmark.x, landmark.y, landmark.z]);
+    });
+    
+    return result;
+  }
+
+  /// Handle API analysis result
+  void _handleApiAnalysisResult(AnalysisResult result) {
+    // Add score-based feedback
+    if (result.score < 0.5) {
+      _pushRealtimeFeedback('API: Form needs improvement (${(result.score * 100).toStringAsFixed(0)}%)');
+    } else if (result.score > 0.8) {
+      _pushRealtimeFeedback('API: Excellent form! (${(result.score * 100).toStringAsFixed(0)}%)');
+    }
+
+    // Add joint-specific feedback
+    result.jointAnalysis.forEach((joint, score) {
+      if (score > 15.0) { // High deviation threshold
+        _pushRealtimeFeedback('API: Focus on $joint (${score.toStringAsFixed(1)}° deviation)');
+      }
+    });
+
+    // Check for rep detection
+    if (result.repDetected) {
+      _pushRealtimeFeedback('API: Rep detected! Consider completing it.');
+    }
+  }
+
+  /// Complete rep with API
+  Future<void> _completeRepWithApi(double score) async {
+    if (_apiService == null || !_isApiSessionActive) return;
+
+    try {
+      final success = await _apiService!.completeRep(score);
+      if (success) {
+        print('Rep completed with API: $score');
+      }
+    } catch (e) {
+      print('Error completing rep with API: $e');
+    }
+  }
+
+  /// Switch camera (desktop version - not applicable)
+  Future<void> _switchCamera() async {
+    // Desktop doesn't support camera switching
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Camera switching not supported on desktop')),
+    );
   }
 
   Map<String, dynamic>? _buildFeatureSnapshot(Map<String, _Landmark> lms) {
@@ -494,98 +637,89 @@ class _LiveExerciseScreenState extends State<LiveExerciseScreen> {
     _loadAvailableReferences();
   }
 
-  void _onCameraImage(CameraImage image) {
+  /// Desktop camera image processing (simulated)
+  void _onDesktopCameraImage() {
     if (_sessionState != SessionState.running && !_isRecordingReference) return;
     if (DateTime.now().difference(_lastProcessed) < _processInterval) return;
-    if (_isProcessingFrame) return; // Drop frame if still processing
+    if (_isProcessingFrame) return;
+    
     _isProcessingFrame = true;
     _lastProcessed = DateTime.now();
 
-    if (!_isDetectorReady || _poseDetector == null || _cameraController == null) {
-      print('Camera image processing skipped: detector=${_isDetectorReady}, poseDetector=${_poseDetector != null}, controller=${_cameraController != null}');
+    if (!_isDetectorReady || _cameraService == null) {
+      print('Desktop camera processing skipped: detector=${_isDetectorReady}, cameraService=${_cameraService != null}');
       _isProcessingFrame = false;
       return;
     }
 
     try {
-      // Validate image dimensions
-      if (image.width <= 0 || image.height <= 0) {
-        print('Invalid image dimensions: ${image.width}x${image.height}');
-        _isProcessingFrame = false;
-        return;
-      }
-
-      // Validate image planes
-      if (image.planes.isEmpty) {
-        print('No image planes available');
-        _isProcessingFrame = false;
-        return;
-      }
-
-      print('Processing camera image: ${image.width}x${image.height}, format: ${image.format.raw}');
-
-      // Convert CameraImage to InputImage for ML Kit
-      final bytes = _concatenatePlanes(image.planes);
-      if (bytes.isEmpty) {
-        print('Failed to concatenate image planes');
-        _isProcessingFrame = false;
-        return;
-      }
-
-      final InputImageRotation rotation = _cameraRotationToInputRotation(_cameraController!.description.sensorOrientation);
-      final InputImageFormat format = InputImageFormatValue.fromRawValue(image.format.raw) ?? InputImageFormat.nv21;
-
-      final inputImage = InputImage.fromBytes(
-        bytes: bytes,
-        metadata: InputImageMetadata(
-          size: Size(image.width.toDouble(), image.height.toDouble()),
-          rotation: rotation,
-          format: format,
-          bytesPerRow: image.planes.isNotEmpty ? image.planes.first.bytesPerRow : 0,
-        ),
-      );
-
-      print('InputImage created successfully, processing poses...');
-      _detectPoses(inputImage).whenComplete(() {
-        _isProcessingFrame = false;
-      });
-    } catch (e) {
-      print('Error processing camera image: $e');
+      print('Processing desktop camera image (simulated)');
+      
+      // Simulate pose detection for desktop
+      _simulatePoseDetection();
+      
       _isProcessingFrame = false;
-      // Don't crash the app, just log the error
+    } catch (e) {
+      print('Error processing desktop camera image: $e');
+      _isProcessingFrame = false;
     }
   }
 
-  Future<void> _detectPoses(InputImage inputImage) async {
-    if (_poseDetector == null) return;
-    try {
-      final poses = await _poseDetector!.processImage(inputImage);
-      if (poses.isEmpty) return;
-      final pose = poses.first;
-      final landmarkMap = <String, _Landmark>{};
-      for (final type in PoseLandmarkType.values) {
-        final lm = pose.landmarks[type];
-        if (lm != null) {
-          landmarkMap[_mapTypeToKey(type)] = _Landmark(lm.x, lm.y, lm.z);
-        }
+  /// Simulate pose detection for desktop
+  void _simulatePoseDetection() {
+    // Generate mock landmarks for desktop testing
+    final landmarkMap = <String, _Landmark>{};
+    
+    // Mock pose data
+    landmarkMap['nose'] = _Landmark(0.5, 0.2, 0.1);
+    landmarkMap['leftShoulder'] = _Landmark(0.4, 0.3, 0.0);
+    landmarkMap['rightShoulder'] = _Landmark(0.6, 0.3, 0.0);
+    landmarkMap['leftElbow'] = _Landmark(0.3, 0.4, 0.0);
+    landmarkMap['rightElbow'] = _Landmark(0.7, 0.4, 0.0);
+    landmarkMap['leftWrist'] = _Landmark(0.2, 0.5, 0.0);
+    landmarkMap['rightWrist'] = _Landmark(0.8, 0.5, 0.0);
+    landmarkMap['leftHip'] = _Landmark(0.4, 0.6, 0.0);
+    landmarkMap['rightHip'] = _Landmark(0.6, 0.6, 0.0);
+    landmarkMap['leftKnee'] = _Landmark(0.4, 0.8, 0.0);
+    landmarkMap['rightKnee'] = _Landmark(0.6, 0.8, 0.0);
+    landmarkMap['leftAnkle'] = _Landmark(0.4, 0.95, 0.0);
+    landmarkMap['rightAnkle'] = _Landmark(0.6, 0.95, 0.0);
+
+    if (_isRecordingReference) {
+      final snapshot = _buildFeatureSnapshot(landmarkMap);
+      if (snapshot != null) {
+        _referenceFrames.add(snapshot);
+        _refValidFramesCount++;
+        _lastMotionAt = DateTime.now();
+        print('Reference frame captured: $_refValidFramesCount valid frames');
       }
-      if (_isRecordingReference) {
-        final snapshot = _buildFeatureSnapshot(landmarkMap);
-        if (snapshot != null) {
-          _referenceFrames.add(snapshot);
-          _refValidFramesCount++;
-          _lastMotionAt = DateTime.now();
-          print('Reference frame captured: $_refValidFramesCount valid frames');
-        }
-        _refFramesCount++;
-      }
-      if (_isGuided && _hasReference) {
-        _guidedFeedback(landmarkMap);
-      }
-      _processPose(landmarkMap);
-    } catch (_) {
-      // ignore frame errors
+      _refFramesCount++;
     }
+    
+    if (_isGuided && _hasReference) {
+      _guidedFeedback(landmarkMap);
+    }
+    
+    _processPose(landmarkMap);
+    
+    // Analyze pose with API if available
+    if (_isApiSessionActive) {
+      _analyzePoseWithApi(landmarkMap);
+    }
+  }
+
+  /// Start desktop camera simulation
+  void _startDesktopCameraSimulation() {
+    if (_cameraService == null) return;
+    
+    // Start periodic simulation of camera frames
+    Timer.periodic(const Duration(milliseconds: 100), (timer) {
+      if (!_cameraService!.isStreaming) {
+        timer.cancel();
+        return;
+      }
+      _onDesktopCameraImage();
+    });
   }
 
   void _guidedFeedback(Map<String, _Landmark> lms) {
@@ -631,61 +765,7 @@ class _LiveExerciseScreenState extends State<LiveExerciseScreen> {
     if (tip != null) _pushRealtimeFeedback(tip);
   }
 
-  String _mapTypeToKey(PoseLandmarkType type) {
-    switch (type) {
-      case PoseLandmarkType.leftShoulder:
-        return 'shoulderLeft';
-      case PoseLandmarkType.rightShoulder:
-        return 'shoulderRight';
-      case PoseLandmarkType.leftElbow:
-        return 'elbowLeft';
-      case PoseLandmarkType.rightElbow:
-        return 'elbowRight';
-      case PoseLandmarkType.leftWrist:
-        return 'wristLeft';
-      case PoseLandmarkType.rightWrist:
-        return 'wristRight';
-      case PoseLandmarkType.leftHip:
-        return 'hipLeft';
-      case PoseLandmarkType.rightHip:
-        return 'hipRight';
-      case PoseLandmarkType.leftKnee:
-        return 'kneeLeft';
-      case PoseLandmarkType.rightKnee:
-        return 'kneeRight';
-      case PoseLandmarkType.leftAnkle:
-        return 'ankleLeft';
-      case PoseLandmarkType.rightAnkle:
-        return 'ankleRight';
-      case PoseLandmarkType.nose:
-        return 'head';
-      default:
-        return type.toString();
-    }
-  }
-
-  Uint8List _concatenatePlanes(List<Plane> planes) {
-    final WriteBuffer allBytes = WriteBuffer();
-    for (final Plane plane in planes) {
-      allBytes.putUint8List(plane.bytes);
-    }
-    return allBytes.done().buffer.asUint8List();
-  }
-
-  InputImageRotation _cameraRotationToInputRotation(int sensorOrientation) {
-    switch (sensorOrientation) {
-      case 0:
-        return InputImageRotation.rotation0deg;
-      case 90:
-        return InputImageRotation.rotation90deg;
-      case 180:
-        return InputImageRotation.rotation180deg;
-      case 270:
-        return InputImageRotation.rotation270deg;
-      default:
-        return InputImageRotation.rotation0deg;
-    }
-  }
+  /// Desktop-specific helper methods (no mobile camera processing needed)
 
   void _processPose(Map<String, _Landmark> landmarks) {
     // Compute relevant angles/distances
@@ -708,6 +788,11 @@ class _LiveExerciseScreenState extends State<LiveExerciseScreen> {
             _repCount += 1;
             _isInDownPhase = false;
             motionDetected = true;
+            // Complete rep with API if available
+            if (_isApiSessionActive) {
+              final score = _scoreFromAngle(primaryAngle, target: 120, tolerance: 30);
+              _completeRepWithApi(score);
+            }
           }
           if (primaryAngle < 70) formTip = 'Don\'t go too deep. Keep knees safe.';
           if (primaryAngle > 180) formTip = 'Locking knees; keep a slight bend.';
@@ -727,6 +812,11 @@ class _LiveExerciseScreenState extends State<LiveExerciseScreen> {
             _repCount += 1;
             _isInDownPhase = false;
             motionDetected = true;
+            // Complete rep with API if available
+            if (_isApiSessionActive) {
+              final score = _scoreFromAngle(primaryAngle, target: 100, tolerance: 40);
+              _completeRepWithApi(score);
+            }
           }
           if (primaryAngle > 170) formTip = 'Don\'t hyperextend elbows at top.';
           _accumulateFormScore(_scoreFromAngle(primaryAngle, target: 100, tolerance: 40));
@@ -907,6 +997,14 @@ class _LiveExerciseScreenState extends State<LiveExerciseScreen> {
   }
 
   Future<void> _startGuidedSession() async {
+    // Start API session if available
+    if (_isApiAvailable && _apiService != null) {
+      final apiStarted = await _startApiSession();
+      if (apiStarted) {
+        print('Started with API integration');
+      }
+    }
+
     // Prefer selected reference video, else try recorded reference frames
     if (_selectedReferenceVideo != null) {
       // Build summary from selected video poseSequence
@@ -950,6 +1048,10 @@ class _LiveExerciseScreenState extends State<LiveExerciseScreen> {
       _isInDownPhase = false;
       _lastMotionAt = DateTime.now();
     });
+    
+    // Start desktop camera simulation
+    _startDesktopCameraSimulation();
+    
     _timer?.cancel();
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       setState(() {
@@ -981,6 +1083,12 @@ class _LiveExerciseScreenState extends State<LiveExerciseScreen> {
 
   Future<void> _stopSession() async {
     if (_sessionState == SessionState.idle) return;
+    
+    // End API session if active
+    if (_isApiSessionActive) {
+      await _endApiSession();
+    }
+    
     _timer?.cancel();
     setState(() {
       _sessionState = SessionState.finished;
@@ -1073,8 +1181,8 @@ class _LiveExerciseScreenState extends State<LiveExerciseScreen> {
           // Camera preview area
           Expanded(
             flex: 3,
-            child: SplitView(
-              cameraController: _cameraController,
+            child: DesktopSplitView(
+              cameraService: _cameraService,
               referenceVideo: _selectedReferenceVideo,
               isRecording: _sessionState == SessionState.running,
               isGuided: _isGuided,
@@ -1228,6 +1336,24 @@ class _LiveExerciseScreenState extends State<LiveExerciseScreen> {
                         Text('Workout: ${_formatDuration(_elapsed)} | Reps: $_repCount'),
                       ],
                     ),
+                  if (_isApiSessionActive)
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.cloud_done, color: Colors.blue, size: 16),
+                        const SizedBox(width: 4),
+                        Text('API: Connected'),
+                      ],
+                    ),
+                  if (_isApiAvailable && !_isApiSessionActive)
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.cloud_off, color: Colors.orange, size: 16),
+                        const SizedBox(width: 4),
+                        Text('API: Available'),
+                      ],
+                    ),
                 ],
               ),
             ),
@@ -1257,6 +1383,21 @@ class _LiveExerciseScreenState extends State<LiveExerciseScreen> {
                           final avg = _formScoreSamples == 0 ? 0.0 : (_formScoreAccum / _formScoreSamples * 100);
                           return Text('Form score: ${avg.toStringAsFixed(0)}%');
                         }),
+                        if (_lastAnalysisResult != null) ...[
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: _lastAnalysisResult!.score > 0.7 ? Colors.green : 
+                                     _lastAnalysisResult!.score > 0.4 ? Colors.orange : Colors.red,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              'API: ${(_lastAnalysisResult!.score * 100).toStringAsFixed(0)}%',
+                              style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                     const SizedBox(height: 4),
