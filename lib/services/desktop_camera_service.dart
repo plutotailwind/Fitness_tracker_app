@@ -22,13 +22,13 @@ class DesktopCameraService {
   List<CameraDescription> _cameras = const [];
   
   /// Check if camera is available (always true for desktop)
-  bool get isAvailable => true;
+  bool get isAvailable => false;
   
   /// Check if camera is initialized
-  bool get isInitialized => _isInitialized;
+  bool get isInitialized => false;
   
   /// Check if camera is streaming
-  bool get isStreaming => _isStreaming;
+  bool get isStreaming => false;
   
   /// Get image stream
   Stream<DesktopCameraImage>? get imageStream => _imageStreamController?.stream;
@@ -42,7 +42,7 @@ class DesktopCameraService {
       _imageStreamController = StreamController<DesktopCameraImage>.broadcast();
       try {
         _cameras = await availableCameras();
-        if (_cameras.isNotEmpty) {
+        if (false &&_cameras.isNotEmpty) {
           _cameraController = CameraController(
             _cameras.first,
             ResolutionPreset.medium,

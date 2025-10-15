@@ -18,6 +18,7 @@ import '../services/pose_comparator.dart';
 import '../services/exercise_feedback_service.dart';
 import '../services/exercise_api_service.dart';
 import '../widgets/desktop_split_view.dart';
+import '../services/python_runner.dart';
 
 enum ExerciseType { squats, pushups, jumpingJacks, yoga }
 
@@ -689,7 +690,7 @@ class _LiveExerciseScreenState extends State<LiveExerciseScreen> {
     if (DateTime.now().difference(_lastProcessed) < _processInterval) return;
     if (_isProcessingFrame) return;
     
-    _isProcessingFrame = true;
+    _isProcessingFrame = false;
     _lastProcessed = DateTime.now();
 
     if (!_isDetectorReady || _cameraService == null) {
@@ -707,7 +708,7 @@ class _LiveExerciseScreenState extends State<LiveExerciseScreen> {
 
       // Simulate pose detection for desktop (until real landmark extraction wired)
       _simulatePoseDetection();
-      _isProcessingFrame = false;
+        _isProcessingFrame = false;
     } catch (e) {
       print('Error processing desktop camera image: $e');
       _isProcessingFrame = false;
@@ -717,7 +718,7 @@ class _LiveExerciseScreenState extends State<LiveExerciseScreen> {
   /// Simulate pose detection for desktop
   void _simulatePoseDetection() {
     // Generate mock landmarks for desktop testing
-    final landmarkMap = <String, _Landmark>{};
+      final landmarkMap = <String, _Landmark>{};
     
     // Mock pose data
     landmarkMap['nose'] = _Landmark(0.5, 0.2, 0.1);
@@ -734,22 +735,22 @@ class _LiveExerciseScreenState extends State<LiveExerciseScreen> {
     landmarkMap['leftAnkle'] = _Landmark(0.4, 0.95, 0.0);
     landmarkMap['rightAnkle'] = _Landmark(0.6, 0.95, 0.0);
 
-    if (_isRecordingReference) {
-      final snapshot = _buildFeatureSnapshot(landmarkMap);
-      if (snapshot != null) {
-        _referenceFrames.add(snapshot);
-        _refValidFramesCount++;
-        _lastMotionAt = DateTime.now();
-        print('Reference frame captured: $_refValidFramesCount valid frames');
+      if (_isRecordingReference) {
+        final snapshot = _buildFeatureSnapshot(landmarkMap);
+        if (snapshot != null) {
+          _referenceFrames.add(snapshot);
+          _refValidFramesCount++;
+          _lastMotionAt = DateTime.now();
+          print('Reference frame captured: $_refValidFramesCount valid frames');
+        }
+        _refFramesCount++;
       }
-      _refFramesCount++;
-    }
     
-    if (_isGuided && _hasReference) {
-      _guidedFeedback(landmarkMap);
-    }
+      if (_isGuided && _hasReference) {
+        _guidedFeedback(landmarkMap);
+      }
     
-    _processPose(landmarkMap);
+      _processPose(landmarkMap);
     // Update live skeleton overlay (coordinates already 0..1)
     _liveLandmarksOffsets = landmarkMap.map((k, v) => MapEntry(k, Offset(v.x, v.y)));
     try {
@@ -1127,6 +1128,51 @@ class _LiveExerciseScreenState extends State<LiveExerciseScreen> {
     });
   }
 
+  /// Start external Python workout (opens Tkinter + OpenCV windows)
+  Future<void> _startExternalWorkout() async {
+    // Require a trainer/reference video path
+    final trainerPath = _selectedReferenceVideo?.videoPath;
+    if (trainerPath == null || trainerPath.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Select or upload a reference video first')),
+      );
+      return;
+    }
+
+    // Try to resolve project root: current, then parent
+    String projectRoot = Directory.current.path;
+    String scriptPath = PathHelper.join(projectRoot, 'Fitness_tracker', 'exercise.py');
+    if (!File(scriptPath).existsSync()) {
+      final parent = Directory(projectRoot).parent.path;
+      projectRoot = parent;
+      scriptPath = PathHelper.join(projectRoot, 'Fitness_tracker', 'exercise.py');
+    }
+    if (!File(scriptPath).existsSync()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('exercise.py not found near app root. Checked: ' + scriptPath)),
+      );
+      return;
+    }
+
+    // Attempt to start using system Python. Users with venv can adjust PATH.
+    final process = await PythonRunner.runExerciseScript(
+      pythonExePath: 'python',
+      projectRoot: projectRoot,
+      trainerVideoPath: trainerPath,
+    );
+
+    if (process == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to launch Python workout. Ensure Python and requirements are installed.')),
+      );
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Launching external workout...')), 
+    );
+  }
+
   void _pauseSession() {
     if (_sessionState != SessionState.running) return;
     setState(() => _sessionState = SessionState.paused);
@@ -1258,6 +1304,8 @@ class _LiveExerciseScreenState extends State<LiveExerciseScreen> {
               onReferencePicked: _handlePickedReferencePath,
               liveLandmarks: _liveLandmarksOffsets,
               referenceLandmarks: _referenceLandmarksOffsets,
+              disableWebcam: true,
+              disableReferenceVideo: true,
             ),
           ),
           const SizedBox(height: 8),
@@ -1360,6 +1408,13 @@ class _LiveExerciseScreenState extends State<LiveExerciseScreen> {
                       foregroundColor: Colors.white,
                     ),
                   ),
+
+                // External Python workout launcher
+                ElevatedButton.icon(
+                  onPressed: _startExternalWorkout,
+                  icon: const Icon(Icons.open_in_new),
+                  label: const Text('Start External Workout (Python)'),
+                ),
                 
                 // Loading indicator
                 if (_isProcessingVideo)
@@ -1442,7 +1497,7 @@ class _LiveExerciseScreenState extends State<LiveExerciseScreen> {
                   border: Border.all(color: Colors.grey.shade300),
                 ),
                 padding: const EdgeInsets.all(12),
-                child: Column(
+        child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(

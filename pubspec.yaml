@@ -57,7 +57,8 @@ dependencies:
   web_socket_channel: ^2.4.0
   image: ^4.2.0
   path_provider: ^2.1.2
-  permission_handler: ^11.3.0
+  # Removed for Windows build (CppWinRT nuget failure)
+  # permission_handler: ^11.3.0
   uuid: ^4.3.3
 
   # HTTP requests for API calls
