@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/auth_provider.dart';
+import '../services/db/app_database.dart';
 import 'challenges_list_screen.dart';
 import 'wallet_screen.dart';
 import 'profile_screen.dart';
@@ -11,17 +14,87 @@ import 'live_exercise_screen.dart';
 import 'feedback_history_screen.dart';
 
 class DashboardScreen extends StatelessWidget {
-  const DashboardScreen({super.key});
+  final String? username;
+  final int? age;
+  final double? height;
+  final double? weight;
+  const DashboardScreen({
+    super.key,
+    this.username,
+    this.age,
+    this.height,
+    this.weight,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final auth = context.watch<AuthProvider>();
+    final displayName = auth.currentUser?.username ?? username ?? "User";
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('Dashboard'),
+        actions: [
+          IconButton(
+            tooltip: 'Dump users to console',
+            onPressed: () async {
+              final db = context.read<AppDatabase>();
+              final all = await db.getAllUsers();
+              for (final u in all) {
+                // ignore: avoid_print
+                print('User(id=' + u.id.toString() + ', email=' + u.email + ', username=' + u.username + ', age=' + (u.age?.toString() ?? 'null') + ', height=' + (u.heightCm?.toString() ?? 'null') + ', weight=' + (u.weightKg?.toString() ?? 'null') + ')');
+              }
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Dumped ' + all.length.toString() + ' users to console')),
+                );
+              }
+            },
+            icon: const Icon(Icons.storage_rounded),
+          ),
+          Tooltip(
+            message: displayName,
+            child: PopupMenuButton<String>(
+              tooltip: 'Account',
+              offset: const Offset(0, 40),
+              itemBuilder: (context) => [
+                PopupMenuItem<String>(
+                  value: 'logout',
+                  child: Row(
+                    children: const [
+                      Icon(Icons.logout, size: 18),
+                      SizedBox(width: 8),
+                      Text('Log out'),
+                    ],
+                  ),
+                ),
+              ],
+              onSelected: (value) {
+                if (value == 'logout') {
+                  context.read<AuthProvider>().logout();
+                  Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+                }
+              },
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: CircleAvatar(
+                  radius: 16,
+                  child: Text(
+                    displayName.isNotEmpty ? displayName[0].toUpperCase() : 'U',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+        ],
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 60), // Space for status bar
+            const SizedBox(height: 8),
             
             // Welcome Header
             _buildWelcomeHeader(),
