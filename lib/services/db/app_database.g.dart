@@ -513,15 +513,419 @@ class UsersCompanion extends UpdateCompanion<User> {
   }
 }
 
+class $FitnessGoalsTable extends FitnessGoals
+    with TableInfo<$FitnessGoalsTable, FitnessGoal> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $FitnessGoalsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<int> userId = GeneratedColumn<int>(
+    'user_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _dailyCaloriesMeta = const VerificationMeta(
+    'dailyCalories',
+  );
+  @override
+  late final GeneratedColumn<int> dailyCalories = GeneratedColumn<int>(
+    'daily_calories',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _dailyMinutesMeta = const VerificationMeta(
+    'dailyMinutes',
+  );
+  @override
+  late final GeneratedColumn<int> dailyMinutes = GeneratedColumn<int>(
+    'daily_minutes',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _dailyStepsMeta = const VerificationMeta(
+    'dailySteps',
+  );
+  @override
+  late final GeneratedColumn<int> dailySteps = GeneratedColumn<int>(
+    'daily_steps',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _notesMeta = const VerificationMeta('notes');
+  @override
+  late final GeneratedColumn<String> notes = GeneratedColumn<String>(
+    'notes',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    userId,
+    dailyCalories,
+    dailyMinutes,
+    dailySteps,
+    notes,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'fitness_goals';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<FitnessGoal> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('user_id')) {
+      context.handle(
+        _userIdMeta,
+        userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_userIdMeta);
+    }
+    if (data.containsKey('daily_calories')) {
+      context.handle(
+        _dailyCaloriesMeta,
+        dailyCalories.isAcceptableOrUnknown(
+          data['daily_calories']!,
+          _dailyCaloriesMeta,
+        ),
+      );
+    }
+    if (data.containsKey('daily_minutes')) {
+      context.handle(
+        _dailyMinutesMeta,
+        dailyMinutes.isAcceptableOrUnknown(
+          data['daily_minutes']!,
+          _dailyMinutesMeta,
+        ),
+      );
+    }
+    if (data.containsKey('daily_steps')) {
+      context.handle(
+        _dailyStepsMeta,
+        dailySteps.isAcceptableOrUnknown(data['daily_steps']!, _dailyStepsMeta),
+      );
+    }
+    if (data.containsKey('notes')) {
+      context.handle(
+        _notesMeta,
+        notes.isAcceptableOrUnknown(data['notes']!, _notesMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  FitnessGoal map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return FitnessGoal(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      userId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}user_id'],
+      )!,
+      dailyCalories: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}daily_calories'],
+      )!,
+      dailyMinutes: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}daily_minutes'],
+      )!,
+      dailySteps: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}daily_steps'],
+      )!,
+      notes: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}notes'],
+      ),
+    );
+  }
+
+  @override
+  $FitnessGoalsTable createAlias(String alias) {
+    return $FitnessGoalsTable(attachedDatabase, alias);
+  }
+}
+
+class FitnessGoal extends DataClass implements Insertable<FitnessGoal> {
+  final int id;
+  final int userId;
+  final int dailyCalories;
+  final int dailyMinutes;
+  final int dailySteps;
+  final String? notes;
+  const FitnessGoal({
+    required this.id,
+    required this.userId,
+    required this.dailyCalories,
+    required this.dailyMinutes,
+    required this.dailySteps,
+    this.notes,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['user_id'] = Variable<int>(userId);
+    map['daily_calories'] = Variable<int>(dailyCalories);
+    map['daily_minutes'] = Variable<int>(dailyMinutes);
+    map['daily_steps'] = Variable<int>(dailySteps);
+    if (!nullToAbsent || notes != null) {
+      map['notes'] = Variable<String>(notes);
+    }
+    return map;
+  }
+
+  FitnessGoalsCompanion toCompanion(bool nullToAbsent) {
+    return FitnessGoalsCompanion(
+      id: Value(id),
+      userId: Value(userId),
+      dailyCalories: Value(dailyCalories),
+      dailyMinutes: Value(dailyMinutes),
+      dailySteps: Value(dailySteps),
+      notes: notes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(notes),
+    );
+  }
+
+  factory FitnessGoal.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return FitnessGoal(
+      id: serializer.fromJson<int>(json['id']),
+      userId: serializer.fromJson<int>(json['userId']),
+      dailyCalories: serializer.fromJson<int>(json['dailyCalories']),
+      dailyMinutes: serializer.fromJson<int>(json['dailyMinutes']),
+      dailySteps: serializer.fromJson<int>(json['dailySteps']),
+      notes: serializer.fromJson<String?>(json['notes']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'userId': serializer.toJson<int>(userId),
+      'dailyCalories': serializer.toJson<int>(dailyCalories),
+      'dailyMinutes': serializer.toJson<int>(dailyMinutes),
+      'dailySteps': serializer.toJson<int>(dailySteps),
+      'notes': serializer.toJson<String?>(notes),
+    };
+  }
+
+  FitnessGoal copyWith({
+    int? id,
+    int? userId,
+    int? dailyCalories,
+    int? dailyMinutes,
+    int? dailySteps,
+    Value<String?> notes = const Value.absent(),
+  }) => FitnessGoal(
+    id: id ?? this.id,
+    userId: userId ?? this.userId,
+    dailyCalories: dailyCalories ?? this.dailyCalories,
+    dailyMinutes: dailyMinutes ?? this.dailyMinutes,
+    dailySteps: dailySteps ?? this.dailySteps,
+    notes: notes.present ? notes.value : this.notes,
+  );
+  FitnessGoal copyWithCompanion(FitnessGoalsCompanion data) {
+    return FitnessGoal(
+      id: data.id.present ? data.id.value : this.id,
+      userId: data.userId.present ? data.userId.value : this.userId,
+      dailyCalories: data.dailyCalories.present
+          ? data.dailyCalories.value
+          : this.dailyCalories,
+      dailyMinutes: data.dailyMinutes.present
+          ? data.dailyMinutes.value
+          : this.dailyMinutes,
+      dailySteps: data.dailySteps.present
+          ? data.dailySteps.value
+          : this.dailySteps,
+      notes: data.notes.present ? data.notes.value : this.notes,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FitnessGoal(')
+          ..write('id: $id, ')
+          ..write('userId: $userId, ')
+          ..write('dailyCalories: $dailyCalories, ')
+          ..write('dailyMinutes: $dailyMinutes, ')
+          ..write('dailySteps: $dailySteps, ')
+          ..write('notes: $notes')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, userId, dailyCalories, dailyMinutes, dailySteps, notes);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is FitnessGoal &&
+          other.id == this.id &&
+          other.userId == this.userId &&
+          other.dailyCalories == this.dailyCalories &&
+          other.dailyMinutes == this.dailyMinutes &&
+          other.dailySteps == this.dailySteps &&
+          other.notes == this.notes);
+}
+
+class FitnessGoalsCompanion extends UpdateCompanion<FitnessGoal> {
+  final Value<int> id;
+  final Value<int> userId;
+  final Value<int> dailyCalories;
+  final Value<int> dailyMinutes;
+  final Value<int> dailySteps;
+  final Value<String?> notes;
+  const FitnessGoalsCompanion({
+    this.id = const Value.absent(),
+    this.userId = const Value.absent(),
+    this.dailyCalories = const Value.absent(),
+    this.dailyMinutes = const Value.absent(),
+    this.dailySteps = const Value.absent(),
+    this.notes = const Value.absent(),
+  });
+  FitnessGoalsCompanion.insert({
+    this.id = const Value.absent(),
+    required int userId,
+    this.dailyCalories = const Value.absent(),
+    this.dailyMinutes = const Value.absent(),
+    this.dailySteps = const Value.absent(),
+    this.notes = const Value.absent(),
+  }) : userId = Value(userId);
+  static Insertable<FitnessGoal> custom({
+    Expression<int>? id,
+    Expression<int>? userId,
+    Expression<int>? dailyCalories,
+    Expression<int>? dailyMinutes,
+    Expression<int>? dailySteps,
+    Expression<String>? notes,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (userId != null) 'user_id': userId,
+      if (dailyCalories != null) 'daily_calories': dailyCalories,
+      if (dailyMinutes != null) 'daily_minutes': dailyMinutes,
+      if (dailySteps != null) 'daily_steps': dailySteps,
+      if (notes != null) 'notes': notes,
+    });
+  }
+
+  FitnessGoalsCompanion copyWith({
+    Value<int>? id,
+    Value<int>? userId,
+    Value<int>? dailyCalories,
+    Value<int>? dailyMinutes,
+    Value<int>? dailySteps,
+    Value<String?>? notes,
+  }) {
+    return FitnessGoalsCompanion(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      dailyCalories: dailyCalories ?? this.dailyCalories,
+      dailyMinutes: dailyMinutes ?? this.dailyMinutes,
+      dailySteps: dailySteps ?? this.dailySteps,
+      notes: notes ?? this.notes,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (userId.present) {
+      map['user_id'] = Variable<int>(userId.value);
+    }
+    if (dailyCalories.present) {
+      map['daily_calories'] = Variable<int>(dailyCalories.value);
+    }
+    if (dailyMinutes.present) {
+      map['daily_minutes'] = Variable<int>(dailyMinutes.value);
+    }
+    if (dailySteps.present) {
+      map['daily_steps'] = Variable<int>(dailySteps.value);
+    }
+    if (notes.present) {
+      map['notes'] = Variable<String>(notes.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FitnessGoalsCompanion(')
+          ..write('id: $id, ')
+          ..write('userId: $userId, ')
+          ..write('dailyCalories: $dailyCalories, ')
+          ..write('dailyMinutes: $dailyMinutes, ')
+          ..write('dailySteps: $dailySteps, ')
+          ..write('notes: $notes')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $UsersTable users = $UsersTable(this);
+  late final $FitnessGoalsTable fitnessGoals = $FitnessGoalsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
-  List<DatabaseSchemaEntity> get allSchemaEntities => [users];
+  List<DatabaseSchemaEntity> get allSchemaEntities => [users, fitnessGoals];
 }
 
 typedef $$UsersTableCreateCompanionBuilder =
@@ -768,10 +1172,231 @@ typedef $$UsersTableProcessedTableManager =
       User,
       PrefetchHooks Function()
     >;
+typedef $$FitnessGoalsTableCreateCompanionBuilder =
+    FitnessGoalsCompanion Function({
+      Value<int> id,
+      required int userId,
+      Value<int> dailyCalories,
+      Value<int> dailyMinutes,
+      Value<int> dailySteps,
+      Value<String?> notes,
+    });
+typedef $$FitnessGoalsTableUpdateCompanionBuilder =
+    FitnessGoalsCompanion Function({
+      Value<int> id,
+      Value<int> userId,
+      Value<int> dailyCalories,
+      Value<int> dailyMinutes,
+      Value<int> dailySteps,
+      Value<String?> notes,
+    });
+
+class $$FitnessGoalsTableFilterComposer
+    extends Composer<_$AppDatabase, $FitnessGoalsTable> {
+  $$FitnessGoalsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get userId => $composableBuilder(
+    column: $table.userId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get dailyCalories => $composableBuilder(
+    column: $table.dailyCalories,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get dailyMinutes => $composableBuilder(
+    column: $table.dailyMinutes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get dailySteps => $composableBuilder(
+    column: $table.dailySteps,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$FitnessGoalsTableOrderingComposer
+    extends Composer<_$AppDatabase, $FitnessGoalsTable> {
+  $$FitnessGoalsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get userId => $composableBuilder(
+    column: $table.userId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get dailyCalories => $composableBuilder(
+    column: $table.dailyCalories,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get dailyMinutes => $composableBuilder(
+    column: $table.dailyMinutes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get dailySteps => $composableBuilder(
+    column: $table.dailySteps,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$FitnessGoalsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $FitnessGoalsTable> {
+  $$FitnessGoalsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get userId =>
+      $composableBuilder(column: $table.userId, builder: (column) => column);
+
+  GeneratedColumn<int> get dailyCalories => $composableBuilder(
+    column: $table.dailyCalories,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get dailyMinutes => $composableBuilder(
+    column: $table.dailyMinutes,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get dailySteps => $composableBuilder(
+    column: $table.dailySteps,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get notes =>
+      $composableBuilder(column: $table.notes, builder: (column) => column);
+}
+
+class $$FitnessGoalsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $FitnessGoalsTable,
+          FitnessGoal,
+          $$FitnessGoalsTableFilterComposer,
+          $$FitnessGoalsTableOrderingComposer,
+          $$FitnessGoalsTableAnnotationComposer,
+          $$FitnessGoalsTableCreateCompanionBuilder,
+          $$FitnessGoalsTableUpdateCompanionBuilder,
+          (
+            FitnessGoal,
+            BaseReferences<_$AppDatabase, $FitnessGoalsTable, FitnessGoal>,
+          ),
+          FitnessGoal,
+          PrefetchHooks Function()
+        > {
+  $$FitnessGoalsTableTableManager(_$AppDatabase db, $FitnessGoalsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$FitnessGoalsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$FitnessGoalsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$FitnessGoalsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int> userId = const Value.absent(),
+                Value<int> dailyCalories = const Value.absent(),
+                Value<int> dailyMinutes = const Value.absent(),
+                Value<int> dailySteps = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
+              }) => FitnessGoalsCompanion(
+                id: id,
+                userId: userId,
+                dailyCalories: dailyCalories,
+                dailyMinutes: dailyMinutes,
+                dailySteps: dailySteps,
+                notes: notes,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required int userId,
+                Value<int> dailyCalories = const Value.absent(),
+                Value<int> dailyMinutes = const Value.absent(),
+                Value<int> dailySteps = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
+              }) => FitnessGoalsCompanion.insert(
+                id: id,
+                userId: userId,
+                dailyCalories: dailyCalories,
+                dailyMinutes: dailyMinutes,
+                dailySteps: dailySteps,
+                notes: notes,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$FitnessGoalsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $FitnessGoalsTable,
+      FitnessGoal,
+      $$FitnessGoalsTableFilterComposer,
+      $$FitnessGoalsTableOrderingComposer,
+      $$FitnessGoalsTableAnnotationComposer,
+      $$FitnessGoalsTableCreateCompanionBuilder,
+      $$FitnessGoalsTableUpdateCompanionBuilder,
+      (
+        FitnessGoal,
+        BaseReferences<_$AppDatabase, $FitnessGoalsTable, FitnessGoal>,
+      ),
+      FitnessGoal,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
   $AppDatabaseManager(this._db);
   $$UsersTableTableManager get users =>
       $$UsersTableTableManager(_db, _db.users);
+  $$FitnessGoalsTableTableManager get fitnessGoals =>
+      $$FitnessGoalsTableTableManager(_db, _db.fitnessGoals);
 }

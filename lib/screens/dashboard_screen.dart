@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../services/db/app_database.dart';
+import '../providers/theme_provider.dart';
 import 'challenges_list_screen.dart';
 import 'wallet_screen.dart';
 import 'profile_screen.dart';
@@ -34,6 +35,13 @@ class DashboardScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Dashboard'),
         actions: [
+          Consumer<ThemeProvider>(
+            builder: (context, themeProv, _) => IconButton(
+              tooltip: themeProv.isDark ? 'Switch to light mode' : 'Switch to dark mode',
+              onPressed: () => themeProv.toggle(),
+              icon: Icon(themeProv.isDark ? Icons.dark_mode : Icons.light_mode),
+            ),
+          ),
           IconButton(
             tooltip: 'Dump users to console',
             onPressed: () async {
@@ -101,7 +109,7 @@ class DashboardScreen extends StatelessWidget {
             const SizedBox(height: 24),
             
             // Quick Stats
-            _buildQuickStats(),
+            _buildGoalsOrEmpty(context),
             const SizedBox(height: 24),
             
             // Leaderboard Preview
@@ -149,35 +157,92 @@ class DashboardScreen extends StatelessWidget {
   }
 
   Widget _buildQuickStats() {
-    return Row(
-      children: [
-        Expanded(
-          child: _buildStatCard(
-            icon: Icons.fitness_center,
-            title: 'Today\'s Goal',
-            value: '75%',
-            color: Colors.blue,
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _buildStatCard(
-            icon: Icons.local_fire_department,
-            title: 'Calories',
-            value: '450',
-            color: Colors.orange,
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _buildStatCard(
-            icon: Icons.favorite,
-            title: 'Heart Rate',
-            value: '72',
-            color: Colors.red,
-          ),
-        ),
-      ],
+    return const SizedBox.shrink();
+  }
+
+  Widget _buildGoalsOrEmpty(BuildContext context) {
+    final auth = context.watch<AuthProvider>();
+    final user = auth.currentUser;
+    return FutureBuilder<FitnessGoal?>(
+      future: user == null
+          ? Future.value(null)
+          : context.read<AppDatabase>().getGoalsForUser(user.id),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        final goals = snapshot.data;
+        if (goals == null) {
+          return Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.1),
+                  spreadRadius: 1,
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.flag_outlined, color: Colors.grey),
+                const SizedBox(width: 12),
+                const Expanded(
+                  child: Text(
+                    'No goals set yet. Set your daily goals to get started!',
+                    style: TextStyle(fontSize: 16),
+                  ),
+                ),
+                FilledButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const FitnessGoalsScreen(),
+                      ),
+                    );
+                  },
+                  child: const Text('Set goals'),
+                ),
+              ],
+            ),
+          );
+        }
+        return Row(
+          children: [
+            Expanded(
+              child: _buildStatCard(
+                icon: Icons.local_fire_department,
+                title: 'Daily calories',
+                value: goals.dailyCalories.toString(),
+                color: Colors.orange,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildStatCard(
+                icon: Icons.timer,
+                title: 'Exercise minutes',
+                value: goals.dailyMinutes.toString(),
+                color: Colors.blue,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildStatCard(
+                icon: Icons.directions_walk,
+                title: 'Steps',
+                value: goals.dailySteps.toString(),
+                color: Colors.green,
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
