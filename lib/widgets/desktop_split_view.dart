@@ -18,6 +18,8 @@ class DesktopSplitView extends StatefulWidget {
   final void Function(String path)? onReferencePicked;
   final Map<String, Offset>? liveLandmarks; // normalized 0..1
   final Map<String, Offset>? referenceLandmarks; // normalized 0..1
+  final bool disableWebcam;
+  final bool disableReferenceVideo;
 
   const DesktopSplitView({
     super.key,
@@ -30,6 +32,8 @@ class DesktopSplitView extends StatefulWidget {
     this.onReferencePicked,
     this.liveLandmarks,
     this.referenceLandmarks,
+    this.disableWebcam = false,
+    this.disableReferenceVideo = false,
   });
 
   @override
@@ -59,6 +63,16 @@ class _DesktopSplitViewState extends State<DesktopSplitView> {
   }
 
   Future<void> _initVideoIfAvailable() async {
+    if (widget.disableReferenceVideo) {
+      // ignore: avoid_print
+      print('[Video] Skipping init: reference video disabled to allow Python to access file/device');
+      _videoError = 'Reference video disabled (Python owns it)';
+      _isVideoReady = false;
+      _resolvedVideoPath = null;
+      _resolvedFileExists = false;
+      setState(() {});
+      return;
+    }
     if (widget.referenceVideo == null) return;
     _videoError = null;
     _isVideoReady = false;
@@ -254,6 +268,22 @@ class _DesktopSplitViewState extends State<DesktopSplitView> {
   }
 
   Widget _buildCameraContent() {
+    if (widget.disableWebcam) {
+      return Container(
+        color: Colors.black,
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.videocam_off, size: 48, color: Colors.white60),
+              const SizedBox(height: 16),
+              Text('Webcam disabled (external Python will use it)', style: TextStyle(color: Colors.grey.shade300, fontSize: 12)),
+            ],
+          ),
+        ),
+      );
+    }
+  
     if (widget.cameraService == null || !widget.cameraService!.isInitialized) {
       return Center(
         child: Column(
@@ -435,6 +465,37 @@ class _DesktopSplitViewState extends State<DesktopSplitView> {
               ],
             ),
           ],
+        ),
+      );
+    }
+    if (widget.disableReferenceVideo) {
+      return Container(
+        color: Colors.black,
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.movie_creation_outlined, size: 48, color: Colors.white60),
+              const SizedBox(height: 16),
+              const Text(
+                'Reference video disabled (external Python owns it)',
+                style: TextStyle(color: Colors.white70),
+              ),
+              if (widget.referenceVideo?.videoPath != null) ...[
+                const SizedBox(height: 8),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: Text(
+                    widget.referenceVideo!.videoPath,
+                    style: const TextStyle(color: Colors.white54, fontSize: 11),
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ],
+          ),
         ),
       );
     }
