@@ -5,6 +5,7 @@ import 'providers/challenges_provider.dart';
 import 'providers/leaderboard_provider.dart';
 import 'providers/auth_provider.dart';
 import 'services/db/app_database.dart';
+import 'providers/theme_provider.dart';
 
 // Import your screens
 import 'screens/signup_screen.dart';
@@ -28,8 +29,10 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => LeaderboardProvider()),
         Provider(create: (_) => AppDatabase()),
         ChangeNotifierProvider(create: (ctx) => AuthProvider(ctx.read<AppDatabase>())),
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
       ],
-      child: MaterialApp(
+      child: Consumer<ThemeProvider>(
+        builder: (context, themeProv, _) => MaterialApp(
         title: 'Fitness Tracker',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
@@ -43,6 +46,14 @@ class MyApp extends StatelessWidget {
             labelStyle: TextStyle(fontSize: 14),
           ),
         ),
+        darkTheme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: Colors.blue,
+            brightness: Brightness.dark,
+          ),
+          useMaterial3: true,
+        ),
+        themeMode: themeProv.mode,
 
         // Start with signup page for now
         initialRoute: '/signup',
@@ -55,6 +66,7 @@ class MyApp extends StatelessWidget {
           '/dashboard': (context) => const DashboardScreen(),
           '/home': (context) => const HomeScreen(),
         },
+      ),
       ),
     );
   }

@@ -24,12 +24,36 @@ class Users extends Table {
   ];
 }
 
-@DriftDatabase(tables: [Users])
+class FitnessGoals extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get userId => integer()();
+  IntColumn get dailyCalories => integer().withDefault(const Constant(0))();
+  IntColumn get dailyMinutes => integer().withDefault(const Constant(0))();
+  IntColumn get dailySteps => integer().withDefault(const Constant(0))();
+  TextColumn get notes => text().nullable()();
+
+  @override
+  List<String> get customConstraints => ['UNIQUE(user_id)'];
+}
+
+@DriftDatabase(tables: [Users, FitnessGoals])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+    onCreate: (m) async {
+      await m.createAll();
+    },
+    onUpgrade: (m, from, to) async {
+      if (from < 2) {
+        await m.createTable(fitnessGoals);
+      }
+    },
+  );
 
   // Users DAO-like helpers
   Future<int> createUser(UsersCompanion user) => into(users).insert(user);
@@ -54,6 +78,37 @@ class AppDatabase extends _$AppDatabase {
   }
 
   Future<List<User>> getAllUsers() => select(users).get();
+
+  // Goals helpers
+  Future<FitnessGoal?> getGoalsForUser(int userId) {
+    return (select(fitnessGoals)..where((g) => g.userId.equals(userId))).getSingleOrNull();
+  }
+
+  Future<int> upsertGoals({
+    required int userId,
+    required int dailyCalories,
+    required int dailyMinutes,
+    required int dailySteps,
+    String? notes,
+  }) async {
+    final existing = await getGoalsForUser(userId);
+    if (existing == null) {
+      return into(fitnessGoals).insert(FitnessGoalsCompanion.insert(
+        userId: userId,
+        dailyCalories: Value(dailyCalories),
+        dailyMinutes: Value(dailyMinutes),
+        dailySteps: Value(dailySteps),
+        notes: notes != null ? Value(notes) : const Value.absent(),
+      ));
+    } else {
+      return (update(fitnessGoals)..where((g) => g.userId.equals(userId))).write(FitnessGoalsCompanion(
+        dailyCalories: Value(dailyCalories),
+        dailyMinutes: Value(dailyMinutes),
+        dailySteps: Value(dailySteps),
+        notes: notes != null ? Value(notes) : const Value.absent(),
+      ));
+    }
+  }
 }
 
 LazyDatabase _openConnection() {
