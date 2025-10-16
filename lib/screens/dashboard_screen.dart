@@ -112,9 +112,7 @@ class DashboardScreen extends StatelessWidget {
             _buildGoalsOrEmpty(context),
             const SizedBox(height: 24),
             
-            // Leaderboard Preview
-            _buildLeaderboardPreview(context),
-            const SizedBox(height: 24),
+            // Leaderboard preview removed
             
             // Rewards Preview
             _buildRewardsPreview(context),
@@ -707,21 +705,6 @@ class DashboardScreen extends StatelessWidget {
             ),
             _buildOptionCard(
               context,
-              icon: Icons.leaderboard,
-              title: 'Leaderboard',
-              subtitle: 'See rankings',
-              color: Colors.purple,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const LeaderboardScreen(),
-                  ),
-                );
-              },
-            ),
-            _buildOptionCard(
-              context,
               icon: Icons.emoji_events,
               title: 'Rewards',
               subtitle: 'Badges & coins',
@@ -795,21 +778,7 @@ class DashboardScreen extends StatelessWidget {
                 );
               },
             ),
-            _buildOptionCard(
-              context,
-              icon: Icons.settings,
-              title: 'Settings',
-              subtitle: 'App preferences',
-              color: Colors.grey,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const SettingsScreen(),
-                  ),
-                );
-              },
-            ),
+            // Settings removed
           ],
         ),
       ],

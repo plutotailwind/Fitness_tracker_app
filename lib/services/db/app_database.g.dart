@@ -916,16 +916,1176 @@ class FitnessGoalsCompanion extends UpdateCompanion<FitnessGoal> {
   }
 }
 
+class $FitnessChallengesTable extends FitnessChallenges
+    with TableInfo<$FitnessChallengesTable, FitnessChallenge> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $FitnessChallengesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<int> userId = GeneratedColumn<int>(
+    'user_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+    'title',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _descriptionMeta = const VerificationMeta(
+    'description',
+  );
+  @override
+  late final GeneratedColumn<String> description = GeneratedColumn<String>(
+    'description',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _typeMeta = const VerificationMeta('type');
+  @override
+  late final GeneratedColumn<String> type = GeneratedColumn<String>(
+    'type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _startDateMeta = const VerificationMeta(
+    'startDate',
+  );
+  @override
+  late final GeneratedColumn<DateTime> startDate = GeneratedColumn<DateTime>(
+    'start_date',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _endDateMeta = const VerificationMeta(
+    'endDate',
+  );
+  @override
+  late final GeneratedColumn<DateTime> endDate = GeneratedColumn<DateTime>(
+    'end_date',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _entryCoinsMeta = const VerificationMeta(
+    'entryCoins',
+  );
+  @override
+  late final GeneratedColumn<int> entryCoins = GeneratedColumn<int>(
+    'entry_coins',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _targetJsonMeta = const VerificationMeta(
+    'targetJson',
+  );
+  @override
+  late final GeneratedColumn<String> targetJson = GeneratedColumn<String>(
+    'target_json',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    userId,
+    title,
+    description,
+    type,
+    startDate,
+    endDate,
+    entryCoins,
+    targetJson,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'fitness_challenges';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<FitnessChallenge> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('user_id')) {
+      context.handle(
+        _userIdMeta,
+        userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_userIdMeta);
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+        _titleMeta,
+        title.isAcceptableOrUnknown(data['title']!, _titleMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_titleMeta);
+    }
+    if (data.containsKey('description')) {
+      context.handle(
+        _descriptionMeta,
+        description.isAcceptableOrUnknown(
+          data['description']!,
+          _descriptionMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_descriptionMeta);
+    }
+    if (data.containsKey('type')) {
+      context.handle(
+        _typeMeta,
+        type.isAcceptableOrUnknown(data['type']!, _typeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_typeMeta);
+    }
+    if (data.containsKey('start_date')) {
+      context.handle(
+        _startDateMeta,
+        startDate.isAcceptableOrUnknown(data['start_date']!, _startDateMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_startDateMeta);
+    }
+    if (data.containsKey('end_date')) {
+      context.handle(
+        _endDateMeta,
+        endDate.isAcceptableOrUnknown(data['end_date']!, _endDateMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_endDateMeta);
+    }
+    if (data.containsKey('entry_coins')) {
+      context.handle(
+        _entryCoinsMeta,
+        entryCoins.isAcceptableOrUnknown(data['entry_coins']!, _entryCoinsMeta),
+      );
+    }
+    if (data.containsKey('target_json')) {
+      context.handle(
+        _targetJsonMeta,
+        targetJson.isAcceptableOrUnknown(data['target_json']!, _targetJsonMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  FitnessChallenge map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return FitnessChallenge(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      userId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}user_id'],
+      )!,
+      title: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}title'],
+      )!,
+      description: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}description'],
+      )!,
+      type: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}type'],
+      )!,
+      startDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}start_date'],
+      )!,
+      endDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}end_date'],
+      )!,
+      entryCoins: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}entry_coins'],
+      )!,
+      targetJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}target_json'],
+      ),
+    );
+  }
+
+  @override
+  $FitnessChallengesTable createAlias(String alias) {
+    return $FitnessChallengesTable(attachedDatabase, alias);
+  }
+}
+
+class FitnessChallenge extends DataClass
+    implements Insertable<FitnessChallenge> {
+  final int id;
+  final int userId;
+  final String title;
+  final String description;
+  final String type;
+  final DateTime startDate;
+  final DateTime endDate;
+  final int entryCoins;
+  final String? targetJson;
+  const FitnessChallenge({
+    required this.id,
+    required this.userId,
+    required this.title,
+    required this.description,
+    required this.type,
+    required this.startDate,
+    required this.endDate,
+    required this.entryCoins,
+    this.targetJson,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['user_id'] = Variable<int>(userId);
+    map['title'] = Variable<String>(title);
+    map['description'] = Variable<String>(description);
+    map['type'] = Variable<String>(type);
+    map['start_date'] = Variable<DateTime>(startDate);
+    map['end_date'] = Variable<DateTime>(endDate);
+    map['entry_coins'] = Variable<int>(entryCoins);
+    if (!nullToAbsent || targetJson != null) {
+      map['target_json'] = Variable<String>(targetJson);
+    }
+    return map;
+  }
+
+  FitnessChallengesCompanion toCompanion(bool nullToAbsent) {
+    return FitnessChallengesCompanion(
+      id: Value(id),
+      userId: Value(userId),
+      title: Value(title),
+      description: Value(description),
+      type: Value(type),
+      startDate: Value(startDate),
+      endDate: Value(endDate),
+      entryCoins: Value(entryCoins),
+      targetJson: targetJson == null && nullToAbsent
+          ? const Value.absent()
+          : Value(targetJson),
+    );
+  }
+
+  factory FitnessChallenge.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return FitnessChallenge(
+      id: serializer.fromJson<int>(json['id']),
+      userId: serializer.fromJson<int>(json['userId']),
+      title: serializer.fromJson<String>(json['title']),
+      description: serializer.fromJson<String>(json['description']),
+      type: serializer.fromJson<String>(json['type']),
+      startDate: serializer.fromJson<DateTime>(json['startDate']),
+      endDate: serializer.fromJson<DateTime>(json['endDate']),
+      entryCoins: serializer.fromJson<int>(json['entryCoins']),
+      targetJson: serializer.fromJson<String?>(json['targetJson']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'userId': serializer.toJson<int>(userId),
+      'title': serializer.toJson<String>(title),
+      'description': serializer.toJson<String>(description),
+      'type': serializer.toJson<String>(type),
+      'startDate': serializer.toJson<DateTime>(startDate),
+      'endDate': serializer.toJson<DateTime>(endDate),
+      'entryCoins': serializer.toJson<int>(entryCoins),
+      'targetJson': serializer.toJson<String?>(targetJson),
+    };
+  }
+
+  FitnessChallenge copyWith({
+    int? id,
+    int? userId,
+    String? title,
+    String? description,
+    String? type,
+    DateTime? startDate,
+    DateTime? endDate,
+    int? entryCoins,
+    Value<String?> targetJson = const Value.absent(),
+  }) => FitnessChallenge(
+    id: id ?? this.id,
+    userId: userId ?? this.userId,
+    title: title ?? this.title,
+    description: description ?? this.description,
+    type: type ?? this.type,
+    startDate: startDate ?? this.startDate,
+    endDate: endDate ?? this.endDate,
+    entryCoins: entryCoins ?? this.entryCoins,
+    targetJson: targetJson.present ? targetJson.value : this.targetJson,
+  );
+  FitnessChallenge copyWithCompanion(FitnessChallengesCompanion data) {
+    return FitnessChallenge(
+      id: data.id.present ? data.id.value : this.id,
+      userId: data.userId.present ? data.userId.value : this.userId,
+      title: data.title.present ? data.title.value : this.title,
+      description: data.description.present
+          ? data.description.value
+          : this.description,
+      type: data.type.present ? data.type.value : this.type,
+      startDate: data.startDate.present ? data.startDate.value : this.startDate,
+      endDate: data.endDate.present ? data.endDate.value : this.endDate,
+      entryCoins: data.entryCoins.present
+          ? data.entryCoins.value
+          : this.entryCoins,
+      targetJson: data.targetJson.present
+          ? data.targetJson.value
+          : this.targetJson,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FitnessChallenge(')
+          ..write('id: $id, ')
+          ..write('userId: $userId, ')
+          ..write('title: $title, ')
+          ..write('description: $description, ')
+          ..write('type: $type, ')
+          ..write('startDate: $startDate, ')
+          ..write('endDate: $endDate, ')
+          ..write('entryCoins: $entryCoins, ')
+          ..write('targetJson: $targetJson')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    userId,
+    title,
+    description,
+    type,
+    startDate,
+    endDate,
+    entryCoins,
+    targetJson,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is FitnessChallenge &&
+          other.id == this.id &&
+          other.userId == this.userId &&
+          other.title == this.title &&
+          other.description == this.description &&
+          other.type == this.type &&
+          other.startDate == this.startDate &&
+          other.endDate == this.endDate &&
+          other.entryCoins == this.entryCoins &&
+          other.targetJson == this.targetJson);
+}
+
+class FitnessChallengesCompanion extends UpdateCompanion<FitnessChallenge> {
+  final Value<int> id;
+  final Value<int> userId;
+  final Value<String> title;
+  final Value<String> description;
+  final Value<String> type;
+  final Value<DateTime> startDate;
+  final Value<DateTime> endDate;
+  final Value<int> entryCoins;
+  final Value<String?> targetJson;
+  const FitnessChallengesCompanion({
+    this.id = const Value.absent(),
+    this.userId = const Value.absent(),
+    this.title = const Value.absent(),
+    this.description = const Value.absent(),
+    this.type = const Value.absent(),
+    this.startDate = const Value.absent(),
+    this.endDate = const Value.absent(),
+    this.entryCoins = const Value.absent(),
+    this.targetJson = const Value.absent(),
+  });
+  FitnessChallengesCompanion.insert({
+    this.id = const Value.absent(),
+    required int userId,
+    required String title,
+    required String description,
+    required String type,
+    required DateTime startDate,
+    required DateTime endDate,
+    this.entryCoins = const Value.absent(),
+    this.targetJson = const Value.absent(),
+  }) : userId = Value(userId),
+       title = Value(title),
+       description = Value(description),
+       type = Value(type),
+       startDate = Value(startDate),
+       endDate = Value(endDate);
+  static Insertable<FitnessChallenge> custom({
+    Expression<int>? id,
+    Expression<int>? userId,
+    Expression<String>? title,
+    Expression<String>? description,
+    Expression<String>? type,
+    Expression<DateTime>? startDate,
+    Expression<DateTime>? endDate,
+    Expression<int>? entryCoins,
+    Expression<String>? targetJson,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (userId != null) 'user_id': userId,
+      if (title != null) 'title': title,
+      if (description != null) 'description': description,
+      if (type != null) 'type': type,
+      if (startDate != null) 'start_date': startDate,
+      if (endDate != null) 'end_date': endDate,
+      if (entryCoins != null) 'entry_coins': entryCoins,
+      if (targetJson != null) 'target_json': targetJson,
+    });
+  }
+
+  FitnessChallengesCompanion copyWith({
+    Value<int>? id,
+    Value<int>? userId,
+    Value<String>? title,
+    Value<String>? description,
+    Value<String>? type,
+    Value<DateTime>? startDate,
+    Value<DateTime>? endDate,
+    Value<int>? entryCoins,
+    Value<String?>? targetJson,
+  }) {
+    return FitnessChallengesCompanion(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      title: title ?? this.title,
+      description: description ?? this.description,
+      type: type ?? this.type,
+      startDate: startDate ?? this.startDate,
+      endDate: endDate ?? this.endDate,
+      entryCoins: entryCoins ?? this.entryCoins,
+      targetJson: targetJson ?? this.targetJson,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (userId.present) {
+      map['user_id'] = Variable<int>(userId.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (description.present) {
+      map['description'] = Variable<String>(description.value);
+    }
+    if (type.present) {
+      map['type'] = Variable<String>(type.value);
+    }
+    if (startDate.present) {
+      map['start_date'] = Variable<DateTime>(startDate.value);
+    }
+    if (endDate.present) {
+      map['end_date'] = Variable<DateTime>(endDate.value);
+    }
+    if (entryCoins.present) {
+      map['entry_coins'] = Variable<int>(entryCoins.value);
+    }
+    if (targetJson.present) {
+      map['target_json'] = Variable<String>(targetJson.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FitnessChallengesCompanion(')
+          ..write('id: $id, ')
+          ..write('userId: $userId, ')
+          ..write('title: $title, ')
+          ..write('description: $description, ')
+          ..write('type: $type, ')
+          ..write('startDate: $startDate, ')
+          ..write('endDate: $endDate, ')
+          ..write('entryCoins: $entryCoins, ')
+          ..write('targetJson: $targetJson')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $ZenBalancesTable extends ZenBalances
+    with TableInfo<$ZenBalancesTable, ZenBalance> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ZenBalancesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<int> userId = GeneratedColumn<int>(
+    'user_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _coinsMeta = const VerificationMeta('coins');
+  @override
+  late final GeneratedColumn<int> coins = GeneratedColumn<int>(
+    'coins',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [userId, coins];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'zen_balances';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<ZenBalance> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('user_id')) {
+      context.handle(
+        _userIdMeta,
+        userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta),
+      );
+    }
+    if (data.containsKey('coins')) {
+      context.handle(
+        _coinsMeta,
+        coins.isAcceptableOrUnknown(data['coins']!, _coinsMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {userId};
+  @override
+  ZenBalance map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ZenBalance(
+      userId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}user_id'],
+      )!,
+      coins: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}coins'],
+      )!,
+    );
+  }
+
+  @override
+  $ZenBalancesTable createAlias(String alias) {
+    return $ZenBalancesTable(attachedDatabase, alias);
+  }
+}
+
+class ZenBalance extends DataClass implements Insertable<ZenBalance> {
+  final int userId;
+  final int coins;
+  const ZenBalance({required this.userId, required this.coins});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['user_id'] = Variable<int>(userId);
+    map['coins'] = Variable<int>(coins);
+    return map;
+  }
+
+  ZenBalancesCompanion toCompanion(bool nullToAbsent) {
+    return ZenBalancesCompanion(userId: Value(userId), coins: Value(coins));
+  }
+
+  factory ZenBalance.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ZenBalance(
+      userId: serializer.fromJson<int>(json['userId']),
+      coins: serializer.fromJson<int>(json['coins']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'userId': serializer.toJson<int>(userId),
+      'coins': serializer.toJson<int>(coins),
+    };
+  }
+
+  ZenBalance copyWith({int? userId, int? coins}) =>
+      ZenBalance(userId: userId ?? this.userId, coins: coins ?? this.coins);
+  ZenBalance copyWithCompanion(ZenBalancesCompanion data) {
+    return ZenBalance(
+      userId: data.userId.present ? data.userId.value : this.userId,
+      coins: data.coins.present ? data.coins.value : this.coins,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ZenBalance(')
+          ..write('userId: $userId, ')
+          ..write('coins: $coins')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(userId, coins);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ZenBalance &&
+          other.userId == this.userId &&
+          other.coins == this.coins);
+}
+
+class ZenBalancesCompanion extends UpdateCompanion<ZenBalance> {
+  final Value<int> userId;
+  final Value<int> coins;
+  const ZenBalancesCompanion({
+    this.userId = const Value.absent(),
+    this.coins = const Value.absent(),
+  });
+  ZenBalancesCompanion.insert({
+    this.userId = const Value.absent(),
+    this.coins = const Value.absent(),
+  });
+  static Insertable<ZenBalance> custom({
+    Expression<int>? userId,
+    Expression<int>? coins,
+  }) {
+    return RawValuesInsertable({
+      if (userId != null) 'user_id': userId,
+      if (coins != null) 'coins': coins,
+    });
+  }
+
+  ZenBalancesCompanion copyWith({Value<int>? userId, Value<int>? coins}) {
+    return ZenBalancesCompanion(
+      userId: userId ?? this.userId,
+      coins: coins ?? this.coins,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (userId.present) {
+      map['user_id'] = Variable<int>(userId.value);
+    }
+    if (coins.present) {
+      map['coins'] = Variable<int>(coins.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ZenBalancesCompanion(')
+          ..write('userId: $userId, ')
+          ..write('coins: $coins')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $WalletTransactionsTable extends WalletTransactions
+    with TableInfo<$WalletTransactionsTable, WalletTransaction> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $WalletTransactionsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<int> userId = GeneratedColumn<int>(
+    'user_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _amountCoinsMeta = const VerificationMeta(
+    'amountCoins',
+  );
+  @override
+  late final GeneratedColumn<int> amountCoins = GeneratedColumn<int>(
+    'amount_coins',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _typeMeta = const VerificationMeta('type');
+  @override
+  late final GeneratedColumn<String> type = GeneratedColumn<String>(
+    'type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _descriptionMeta = const VerificationMeta(
+    'description',
+  );
+  @override
+  late final GeneratedColumn<String> description = GeneratedColumn<String>(
+    'description',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _timestampMeta = const VerificationMeta(
+    'timestamp',
+  );
+  @override
+  late final GeneratedColumn<DateTime> timestamp = GeneratedColumn<DateTime>(
+    'timestamp',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    userId,
+    amountCoins,
+    type,
+    description,
+    timestamp,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'wallet_transactions';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<WalletTransaction> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('user_id')) {
+      context.handle(
+        _userIdMeta,
+        userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_userIdMeta);
+    }
+    if (data.containsKey('amount_coins')) {
+      context.handle(
+        _amountCoinsMeta,
+        amountCoins.isAcceptableOrUnknown(
+          data['amount_coins']!,
+          _amountCoinsMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_amountCoinsMeta);
+    }
+    if (data.containsKey('type')) {
+      context.handle(
+        _typeMeta,
+        type.isAcceptableOrUnknown(data['type']!, _typeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_typeMeta);
+    }
+    if (data.containsKey('description')) {
+      context.handle(
+        _descriptionMeta,
+        description.isAcceptableOrUnknown(
+          data['description']!,
+          _descriptionMeta,
+        ),
+      );
+    }
+    if (data.containsKey('timestamp')) {
+      context.handle(
+        _timestampMeta,
+        timestamp.isAcceptableOrUnknown(data['timestamp']!, _timestampMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  WalletTransaction map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return WalletTransaction(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      userId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}user_id'],
+      )!,
+      amountCoins: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}amount_coins'],
+      )!,
+      type: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}type'],
+      )!,
+      description: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}description'],
+      ),
+      timestamp: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}timestamp'],
+      )!,
+    );
+  }
+
+  @override
+  $WalletTransactionsTable createAlias(String alias) {
+    return $WalletTransactionsTable(attachedDatabase, alias);
+  }
+}
+
+class WalletTransaction extends DataClass
+    implements Insertable<WalletTransaction> {
+  final int id;
+  final int userId;
+  final int amountCoins;
+  final String type;
+  final String? description;
+  final DateTime timestamp;
+  const WalletTransaction({
+    required this.id,
+    required this.userId,
+    required this.amountCoins,
+    required this.type,
+    this.description,
+    required this.timestamp,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['user_id'] = Variable<int>(userId);
+    map['amount_coins'] = Variable<int>(amountCoins);
+    map['type'] = Variable<String>(type);
+    if (!nullToAbsent || description != null) {
+      map['description'] = Variable<String>(description);
+    }
+    map['timestamp'] = Variable<DateTime>(timestamp);
+    return map;
+  }
+
+  WalletTransactionsCompanion toCompanion(bool nullToAbsent) {
+    return WalletTransactionsCompanion(
+      id: Value(id),
+      userId: Value(userId),
+      amountCoins: Value(amountCoins),
+      type: Value(type),
+      description: description == null && nullToAbsent
+          ? const Value.absent()
+          : Value(description),
+      timestamp: Value(timestamp),
+    );
+  }
+
+  factory WalletTransaction.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return WalletTransaction(
+      id: serializer.fromJson<int>(json['id']),
+      userId: serializer.fromJson<int>(json['userId']),
+      amountCoins: serializer.fromJson<int>(json['amountCoins']),
+      type: serializer.fromJson<String>(json['type']),
+      description: serializer.fromJson<String?>(json['description']),
+      timestamp: serializer.fromJson<DateTime>(json['timestamp']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'userId': serializer.toJson<int>(userId),
+      'amountCoins': serializer.toJson<int>(amountCoins),
+      'type': serializer.toJson<String>(type),
+      'description': serializer.toJson<String?>(description),
+      'timestamp': serializer.toJson<DateTime>(timestamp),
+    };
+  }
+
+  WalletTransaction copyWith({
+    int? id,
+    int? userId,
+    int? amountCoins,
+    String? type,
+    Value<String?> description = const Value.absent(),
+    DateTime? timestamp,
+  }) => WalletTransaction(
+    id: id ?? this.id,
+    userId: userId ?? this.userId,
+    amountCoins: amountCoins ?? this.amountCoins,
+    type: type ?? this.type,
+    description: description.present ? description.value : this.description,
+    timestamp: timestamp ?? this.timestamp,
+  );
+  WalletTransaction copyWithCompanion(WalletTransactionsCompanion data) {
+    return WalletTransaction(
+      id: data.id.present ? data.id.value : this.id,
+      userId: data.userId.present ? data.userId.value : this.userId,
+      amountCoins: data.amountCoins.present
+          ? data.amountCoins.value
+          : this.amountCoins,
+      type: data.type.present ? data.type.value : this.type,
+      description: data.description.present
+          ? data.description.value
+          : this.description,
+      timestamp: data.timestamp.present ? data.timestamp.value : this.timestamp,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('WalletTransaction(')
+          ..write('id: $id, ')
+          ..write('userId: $userId, ')
+          ..write('amountCoins: $amountCoins, ')
+          ..write('type: $type, ')
+          ..write('description: $description, ')
+          ..write('timestamp: $timestamp')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, userId, amountCoins, type, description, timestamp);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is WalletTransaction &&
+          other.id == this.id &&
+          other.userId == this.userId &&
+          other.amountCoins == this.amountCoins &&
+          other.type == this.type &&
+          other.description == this.description &&
+          other.timestamp == this.timestamp);
+}
+
+class WalletTransactionsCompanion extends UpdateCompanion<WalletTransaction> {
+  final Value<int> id;
+  final Value<int> userId;
+  final Value<int> amountCoins;
+  final Value<String> type;
+  final Value<String?> description;
+  final Value<DateTime> timestamp;
+  const WalletTransactionsCompanion({
+    this.id = const Value.absent(),
+    this.userId = const Value.absent(),
+    this.amountCoins = const Value.absent(),
+    this.type = const Value.absent(),
+    this.description = const Value.absent(),
+    this.timestamp = const Value.absent(),
+  });
+  WalletTransactionsCompanion.insert({
+    this.id = const Value.absent(),
+    required int userId,
+    required int amountCoins,
+    required String type,
+    this.description = const Value.absent(),
+    this.timestamp = const Value.absent(),
+  }) : userId = Value(userId),
+       amountCoins = Value(amountCoins),
+       type = Value(type);
+  static Insertable<WalletTransaction> custom({
+    Expression<int>? id,
+    Expression<int>? userId,
+    Expression<int>? amountCoins,
+    Expression<String>? type,
+    Expression<String>? description,
+    Expression<DateTime>? timestamp,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (userId != null) 'user_id': userId,
+      if (amountCoins != null) 'amount_coins': amountCoins,
+      if (type != null) 'type': type,
+      if (description != null) 'description': description,
+      if (timestamp != null) 'timestamp': timestamp,
+    });
+  }
+
+  WalletTransactionsCompanion copyWith({
+    Value<int>? id,
+    Value<int>? userId,
+    Value<int>? amountCoins,
+    Value<String>? type,
+    Value<String?>? description,
+    Value<DateTime>? timestamp,
+  }) {
+    return WalletTransactionsCompanion(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      amountCoins: amountCoins ?? this.amountCoins,
+      type: type ?? this.type,
+      description: description ?? this.description,
+      timestamp: timestamp ?? this.timestamp,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (userId.present) {
+      map['user_id'] = Variable<int>(userId.value);
+    }
+    if (amountCoins.present) {
+      map['amount_coins'] = Variable<int>(amountCoins.value);
+    }
+    if (type.present) {
+      map['type'] = Variable<String>(type.value);
+    }
+    if (description.present) {
+      map['description'] = Variable<String>(description.value);
+    }
+    if (timestamp.present) {
+      map['timestamp'] = Variable<DateTime>(timestamp.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('WalletTransactionsCompanion(')
+          ..write('id: $id, ')
+          ..write('userId: $userId, ')
+          ..write('amountCoins: $amountCoins, ')
+          ..write('type: $type, ')
+          ..write('description: $description, ')
+          ..write('timestamp: $timestamp')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $UsersTable users = $UsersTable(this);
   late final $FitnessGoalsTable fitnessGoals = $FitnessGoalsTable(this);
+  late final $FitnessChallengesTable fitnessChallenges =
+      $FitnessChallengesTable(this);
+  late final $ZenBalancesTable zenBalances = $ZenBalancesTable(this);
+  late final $WalletTransactionsTable walletTransactions =
+      $WalletTransactionsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
-  List<DatabaseSchemaEntity> get allSchemaEntities => [users, fitnessGoals];
+  List<DatabaseSchemaEntity> get allSchemaEntities => [
+    users,
+    fitnessGoals,
+    fitnessChallenges,
+    zenBalances,
+    walletTransactions,
+  ];
 }
 
 typedef $$UsersTableCreateCompanionBuilder =
@@ -1391,6 +2551,650 @@ typedef $$FitnessGoalsTableProcessedTableManager =
       FitnessGoal,
       PrefetchHooks Function()
     >;
+typedef $$FitnessChallengesTableCreateCompanionBuilder =
+    FitnessChallengesCompanion Function({
+      Value<int> id,
+      required int userId,
+      required String title,
+      required String description,
+      required String type,
+      required DateTime startDate,
+      required DateTime endDate,
+      Value<int> entryCoins,
+      Value<String?> targetJson,
+    });
+typedef $$FitnessChallengesTableUpdateCompanionBuilder =
+    FitnessChallengesCompanion Function({
+      Value<int> id,
+      Value<int> userId,
+      Value<String> title,
+      Value<String> description,
+      Value<String> type,
+      Value<DateTime> startDate,
+      Value<DateTime> endDate,
+      Value<int> entryCoins,
+      Value<String?> targetJson,
+    });
+
+class $$FitnessChallengesTableFilterComposer
+    extends Composer<_$AppDatabase, $FitnessChallengesTable> {
+  $$FitnessChallengesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get userId => $composableBuilder(
+    column: $table.userId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get startDate => $composableBuilder(
+    column: $table.startDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get endDate => $composableBuilder(
+    column: $table.endDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get entryCoins => $composableBuilder(
+    column: $table.entryCoins,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get targetJson => $composableBuilder(
+    column: $table.targetJson,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$FitnessChallengesTableOrderingComposer
+    extends Composer<_$AppDatabase, $FitnessChallengesTable> {
+  $$FitnessChallengesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get userId => $composableBuilder(
+    column: $table.userId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get startDate => $composableBuilder(
+    column: $table.startDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get endDate => $composableBuilder(
+    column: $table.endDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get entryCoins => $composableBuilder(
+    column: $table.entryCoins,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get targetJson => $composableBuilder(
+    column: $table.targetJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$FitnessChallengesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $FitnessChallengesTable> {
+  $$FitnessChallengesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get userId =>
+      $composableBuilder(column: $table.userId, builder: (column) => column);
+
+  GeneratedColumn<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get type =>
+      $composableBuilder(column: $table.type, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get startDate =>
+      $composableBuilder(column: $table.startDate, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get endDate =>
+      $composableBuilder(column: $table.endDate, builder: (column) => column);
+
+  GeneratedColumn<int> get entryCoins => $composableBuilder(
+    column: $table.entryCoins,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get targetJson => $composableBuilder(
+    column: $table.targetJson,
+    builder: (column) => column,
+  );
+}
+
+class $$FitnessChallengesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $FitnessChallengesTable,
+          FitnessChallenge,
+          $$FitnessChallengesTableFilterComposer,
+          $$FitnessChallengesTableOrderingComposer,
+          $$FitnessChallengesTableAnnotationComposer,
+          $$FitnessChallengesTableCreateCompanionBuilder,
+          $$FitnessChallengesTableUpdateCompanionBuilder,
+          (
+            FitnessChallenge,
+            BaseReferences<
+              _$AppDatabase,
+              $FitnessChallengesTable,
+              FitnessChallenge
+            >,
+          ),
+          FitnessChallenge,
+          PrefetchHooks Function()
+        > {
+  $$FitnessChallengesTableTableManager(
+    _$AppDatabase db,
+    $FitnessChallengesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$FitnessChallengesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$FitnessChallengesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$FitnessChallengesTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int> userId = const Value.absent(),
+                Value<String> title = const Value.absent(),
+                Value<String> description = const Value.absent(),
+                Value<String> type = const Value.absent(),
+                Value<DateTime> startDate = const Value.absent(),
+                Value<DateTime> endDate = const Value.absent(),
+                Value<int> entryCoins = const Value.absent(),
+                Value<String?> targetJson = const Value.absent(),
+              }) => FitnessChallengesCompanion(
+                id: id,
+                userId: userId,
+                title: title,
+                description: description,
+                type: type,
+                startDate: startDate,
+                endDate: endDate,
+                entryCoins: entryCoins,
+                targetJson: targetJson,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required int userId,
+                required String title,
+                required String description,
+                required String type,
+                required DateTime startDate,
+                required DateTime endDate,
+                Value<int> entryCoins = const Value.absent(),
+                Value<String?> targetJson = const Value.absent(),
+              }) => FitnessChallengesCompanion.insert(
+                id: id,
+                userId: userId,
+                title: title,
+                description: description,
+                type: type,
+                startDate: startDate,
+                endDate: endDate,
+                entryCoins: entryCoins,
+                targetJson: targetJson,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$FitnessChallengesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $FitnessChallengesTable,
+      FitnessChallenge,
+      $$FitnessChallengesTableFilterComposer,
+      $$FitnessChallengesTableOrderingComposer,
+      $$FitnessChallengesTableAnnotationComposer,
+      $$FitnessChallengesTableCreateCompanionBuilder,
+      $$FitnessChallengesTableUpdateCompanionBuilder,
+      (
+        FitnessChallenge,
+        BaseReferences<
+          _$AppDatabase,
+          $FitnessChallengesTable,
+          FitnessChallenge
+        >,
+      ),
+      FitnessChallenge,
+      PrefetchHooks Function()
+    >;
+typedef $$ZenBalancesTableCreateCompanionBuilder =
+    ZenBalancesCompanion Function({Value<int> userId, Value<int> coins});
+typedef $$ZenBalancesTableUpdateCompanionBuilder =
+    ZenBalancesCompanion Function({Value<int> userId, Value<int> coins});
+
+class $$ZenBalancesTableFilterComposer
+    extends Composer<_$AppDatabase, $ZenBalancesTable> {
+  $$ZenBalancesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get userId => $composableBuilder(
+    column: $table.userId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get coins => $composableBuilder(
+    column: $table.coins,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$ZenBalancesTableOrderingComposer
+    extends Composer<_$AppDatabase, $ZenBalancesTable> {
+  $$ZenBalancesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get userId => $composableBuilder(
+    column: $table.userId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get coins => $composableBuilder(
+    column: $table.coins,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$ZenBalancesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ZenBalancesTable> {
+  $$ZenBalancesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get userId =>
+      $composableBuilder(column: $table.userId, builder: (column) => column);
+
+  GeneratedColumn<int> get coins =>
+      $composableBuilder(column: $table.coins, builder: (column) => column);
+}
+
+class $$ZenBalancesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $ZenBalancesTable,
+          ZenBalance,
+          $$ZenBalancesTableFilterComposer,
+          $$ZenBalancesTableOrderingComposer,
+          $$ZenBalancesTableAnnotationComposer,
+          $$ZenBalancesTableCreateCompanionBuilder,
+          $$ZenBalancesTableUpdateCompanionBuilder,
+          (
+            ZenBalance,
+            BaseReferences<_$AppDatabase, $ZenBalancesTable, ZenBalance>,
+          ),
+          ZenBalance,
+          PrefetchHooks Function()
+        > {
+  $$ZenBalancesTableTableManager(_$AppDatabase db, $ZenBalancesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ZenBalancesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ZenBalancesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ZenBalancesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> userId = const Value.absent(),
+                Value<int> coins = const Value.absent(),
+              }) => ZenBalancesCompanion(userId: userId, coins: coins),
+          createCompanionCallback:
+              ({
+                Value<int> userId = const Value.absent(),
+                Value<int> coins = const Value.absent(),
+              }) => ZenBalancesCompanion.insert(userId: userId, coins: coins),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$ZenBalancesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $ZenBalancesTable,
+      ZenBalance,
+      $$ZenBalancesTableFilterComposer,
+      $$ZenBalancesTableOrderingComposer,
+      $$ZenBalancesTableAnnotationComposer,
+      $$ZenBalancesTableCreateCompanionBuilder,
+      $$ZenBalancesTableUpdateCompanionBuilder,
+      (
+        ZenBalance,
+        BaseReferences<_$AppDatabase, $ZenBalancesTable, ZenBalance>,
+      ),
+      ZenBalance,
+      PrefetchHooks Function()
+    >;
+typedef $$WalletTransactionsTableCreateCompanionBuilder =
+    WalletTransactionsCompanion Function({
+      Value<int> id,
+      required int userId,
+      required int amountCoins,
+      required String type,
+      Value<String?> description,
+      Value<DateTime> timestamp,
+    });
+typedef $$WalletTransactionsTableUpdateCompanionBuilder =
+    WalletTransactionsCompanion Function({
+      Value<int> id,
+      Value<int> userId,
+      Value<int> amountCoins,
+      Value<String> type,
+      Value<String?> description,
+      Value<DateTime> timestamp,
+    });
+
+class $$WalletTransactionsTableFilterComposer
+    extends Composer<_$AppDatabase, $WalletTransactionsTable> {
+  $$WalletTransactionsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get userId => $composableBuilder(
+    column: $table.userId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get amountCoins => $composableBuilder(
+    column: $table.amountCoins,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get timestamp => $composableBuilder(
+    column: $table.timestamp,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$WalletTransactionsTableOrderingComposer
+    extends Composer<_$AppDatabase, $WalletTransactionsTable> {
+  $$WalletTransactionsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get userId => $composableBuilder(
+    column: $table.userId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get amountCoins => $composableBuilder(
+    column: $table.amountCoins,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get timestamp => $composableBuilder(
+    column: $table.timestamp,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$WalletTransactionsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $WalletTransactionsTable> {
+  $$WalletTransactionsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get userId =>
+      $composableBuilder(column: $table.userId, builder: (column) => column);
+
+  GeneratedColumn<int> get amountCoins => $composableBuilder(
+    column: $table.amountCoins,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get type =>
+      $composableBuilder(column: $table.type, builder: (column) => column);
+
+  GeneratedColumn<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get timestamp =>
+      $composableBuilder(column: $table.timestamp, builder: (column) => column);
+}
+
+class $$WalletTransactionsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $WalletTransactionsTable,
+          WalletTransaction,
+          $$WalletTransactionsTableFilterComposer,
+          $$WalletTransactionsTableOrderingComposer,
+          $$WalletTransactionsTableAnnotationComposer,
+          $$WalletTransactionsTableCreateCompanionBuilder,
+          $$WalletTransactionsTableUpdateCompanionBuilder,
+          (
+            WalletTransaction,
+            BaseReferences<
+              _$AppDatabase,
+              $WalletTransactionsTable,
+              WalletTransaction
+            >,
+          ),
+          WalletTransaction,
+          PrefetchHooks Function()
+        > {
+  $$WalletTransactionsTableTableManager(
+    _$AppDatabase db,
+    $WalletTransactionsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$WalletTransactionsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$WalletTransactionsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$WalletTransactionsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int> userId = const Value.absent(),
+                Value<int> amountCoins = const Value.absent(),
+                Value<String> type = const Value.absent(),
+                Value<String?> description = const Value.absent(),
+                Value<DateTime> timestamp = const Value.absent(),
+              }) => WalletTransactionsCompanion(
+                id: id,
+                userId: userId,
+                amountCoins: amountCoins,
+                type: type,
+                description: description,
+                timestamp: timestamp,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required int userId,
+                required int amountCoins,
+                required String type,
+                Value<String?> description = const Value.absent(),
+                Value<DateTime> timestamp = const Value.absent(),
+              }) => WalletTransactionsCompanion.insert(
+                id: id,
+                userId: userId,
+                amountCoins: amountCoins,
+                type: type,
+                description: description,
+                timestamp: timestamp,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$WalletTransactionsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $WalletTransactionsTable,
+      WalletTransaction,
+      $$WalletTransactionsTableFilterComposer,
+      $$WalletTransactionsTableOrderingComposer,
+      $$WalletTransactionsTableAnnotationComposer,
+      $$WalletTransactionsTableCreateCompanionBuilder,
+      $$WalletTransactionsTableUpdateCompanionBuilder,
+      (
+        WalletTransaction,
+        BaseReferences<
+          _$AppDatabase,
+          $WalletTransactionsTable,
+          WalletTransaction
+        >,
+      ),
+      WalletTransaction,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -1399,4 +3203,10 @@ class $AppDatabaseManager {
       $$UsersTableTableManager(_db, _db.users);
   $$FitnessGoalsTableTableManager get fitnessGoals =>
       $$FitnessGoalsTableTableManager(_db, _db.fitnessGoals);
+  $$FitnessChallengesTableTableManager get fitnessChallenges =>
+      $$FitnessChallengesTableTableManager(_db, _db.fitnessChallenges);
+  $$ZenBalancesTableTableManager get zenBalances =>
+      $$ZenBalancesTableTableManager(_db, _db.zenBalances);
+  $$WalletTransactionsTableTableManager get walletTransactions =>
+      $$WalletTransactionsTableTableManager(_db, _db.walletTransactions);
 }

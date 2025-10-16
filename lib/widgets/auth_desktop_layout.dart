@@ -9,6 +9,7 @@ class AuthDesktopLayout extends StatelessWidget {
     this.footer,
     this.side,
     this.maxFormWidth = 420,
+    this.onBack,
   });
 
   final String title;
@@ -17,6 +18,7 @@ class AuthDesktopLayout extends StatelessWidget {
   final Widget? footer;
   final Widget? side;
   final double maxFormWidth;
+  final VoidCallback? onBack;
 
   @override
   Widget build(BuildContext context) {
@@ -52,6 +54,7 @@ class AuthDesktopLayout extends StatelessWidget {
                     form: form,
                     footer: footer,
                     maxFormWidth: maxFormWidth,
+                    onBack: onBack,
                   );
 
                   if (!isWide) {
@@ -93,6 +96,7 @@ class _AuthCard extends StatelessWidget {
     this.subtitle,
     this.footer,
     required this.maxFormWidth,
+    this.onBack,
   });
 
   final String title;
@@ -100,6 +104,7 @@ class _AuthCard extends StatelessWidget {
   final Widget form;
   final Widget? footer;
   final double maxFormWidth;
+  final VoidCallback? onBack;
 
   @override
   Widget build(BuildContext context) {
@@ -126,6 +131,13 @@ class _AuthCard extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              if (onBack != null) ...[
+                IconButton(
+                  onPressed: onBack,
+                  icon: const Icon(Icons.arrow_back),
+                  tooltip: 'Back',
+                ),
+              ],
               Text(
                 title,
                 style: theme.textTheme.headlineMedium?.copyWith(
